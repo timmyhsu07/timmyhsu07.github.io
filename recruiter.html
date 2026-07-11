@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* URL router — yoursite.com/?mission jumps straight to the retrofuturist-style view. */
+(function(){var q=location.search.toLowerCase();
+  if(/[?&](mission|index|m)(=|&|$)/.test(q)) location.replace("index.html"+location.hash);})();
+</script>
+<title>Timothy Hsu — Portfolio</title>
+<meta name="description" content="Timothy Hsu — ML/AI researcher. Clean, recruiter-friendly portfolio: about, research, projects, contact.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Saira+Condensed:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05040A; --panel:#0a0713; --text:#f0b32a; --dim:#7c6320; --line:#7a5a14;
+  --line-soft:rgba(122,90,20,.4); --hi:#47ffa9; --red:#ff4747; --orange:#ff6a1f; --cyan:#39d6c8;
+  --serif:'Instrument Serif',Georgia,serif; --mono:'Saira Condensed','Helvetica Neue',system-ui,sans-serif;
+  --tt:'Share Tech Mono',ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding:0 0 80px}
+/* clean, subtle vignette only — no scanlines (kept professional) */
+body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 34%,transparent 46%,rgba(0,0,0,.55) 88%,rgba(0,0,0,.9) 100%)}
+#app{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:0 28px}
+a{color:var(--cyan);text-decoration:none} a:hover{color:#dffbf7;text-shadow:0 0 8px rgba(57,214,200,.5)}
+
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:22px 0 16px;font-family:var(--tt);font-size:12px;letter-spacing:.14em;color:var(--dim);flex-wrap:wrap}
+.top .back{color:var(--hi)} .top .back:hover{text-shadow:0 0 10px rgba(71,255,169,.6)}
+.top .stamp{color:var(--text)}
+
+/* hero */
+header.hero{padding:24px 0 30px;border-bottom:1px solid var(--line-soft)}
+.hero h1{font-family:var(--serif);font-style:italic;font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;
+  text-transform:uppercase;color:var(--hi);letter-spacing:.01em;text-shadow:0 0 8px rgba(71,255,169,.45)}
+.hero .focus{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;
+  font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
+.hero .role{margin-top:12px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text);opacity:.9;max-width:70ch}
+.hero .rail{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
+.hero .rail a{font-family:var(--tt);font-size:12px;letter-spacing:.14em;color:var(--text);
+  border:1px solid var(--line);padding:7px 14px;text-transform:uppercase;transition:.15s}
+.hero .rail a:hover{border-color:var(--hi);color:var(--hi);box-shadow:0 0 12px rgba(71,255,169,.28)}
+
+/* sections */
+section{padding:30px 0;border-bottom:1px solid var(--line-soft)}
+.sec-h{font-family:var(--tt);font-size:12px;letter-spacing:.28em;color:var(--red);text-transform:uppercase;
+  border:1px solid var(--red);display:inline-block;padding:3px 12px;margin-bottom:20px}
+.lead{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.4;color:var(--hi);
+  text-shadow:0 0 8px rgba(71,255,169,.18);margin-bottom:16px;max-width:74ch}
+.p{font-size:15.5px;line-height:1.72;color:var(--text);opacity:.92;margin-bottom:14px;max-width:82ch}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:8px 20px;font-family:var(--tt);font-size:14px;
+  margin:18px 0;padding:14px 0;border-top:1px dashed var(--line-soft);border-bottom:1px dashed var(--line-soft);max-width:520px}
+.facts .k{color:var(--dim);letter-spacing:.14em} .facts .v{color:var(--text);letter-spacing:.04em}
+.sub{font-family:var(--tt);font-size:12px;letter-spacing:.22em;color:var(--orange);margin:18px 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--tt);font-size:12px;letter-spacing:.04em;color:var(--cyan);
+  border:1px solid rgba(57,214,200,.4);padding:4px 10px}
+
+.entry{padding:20px 0;border-top:1px solid var(--line-soft)}
+.entry:first-of-type{border-top:none}
+.entry .e-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+.entry .e-name{font-family:var(--serif);font-style:italic;font-weight:700;font-size:26px;color:var(--hi)}
+.entry .e-meta{font-family:var(--tt);font-size:12px;letter-spacing:.1em;color:var(--dim);white-space:nowrap}
+.entry .e-meta.belt{color:var(--orange)}
+.entry ul{list-style:none;margin:12px 0 0;display:flex;flex-direction:column;gap:9px}
+.entry li{font-size:15px;line-height:1.6;color:var(--text);opacity:.92;padding-left:18px;position:relative}
+.entry li::before{content:"▸";position:absolute;left:0;color:var(--orange)}
+.entry .e-desc{font-size:15px;line-height:1.65;color:var(--text);opacity:.92;margin-top:8px;max-width:82ch}
+.entry .e-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:12px}
+.entry .e-links{display:flex;gap:16px}
+.entry .e-links a{font-family:var(--tt);font-size:12px;letter-spacing:.1em}
+
+.contact-grid{display:grid;grid-template-columns:auto 1fr;gap:10px 22px;font-family:var(--tt);font-size:15px;max-width:560px;margin-top:8px}
+.contact-grid .k{color:var(--dim);letter-spacing:.14em}
+footer{padding:28px 0 0;font-family:var(--tt);font-size:12px;letter-spacing:.12em;color:var(--dim);text-align:center}
+footer a{color:var(--hi)}
+@media(max-width:560px){ .facts,.contact-grid{grid-template-columns:1fr} .entry .e-meta{white-space:normal} }
+
+/* ── side control rail: light-mode toggle + back to retrofuturist style ── */
+#side-ctrl{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:30;
+  display:flex;flex-direction:column;gap:12px}
+#side-ctrl .sbtn{writing-mode:vertical-rl;transform:rotate(180deg);
+  font-family:var(--tt);font-size:12px;letter-spacing:.24em;text-transform:uppercase;
+  padding:16px 9px;border:1px solid var(--line);color:var(--text);background:var(--panel);
+  cursor:pointer;text-decoration:none;transition:.15s;line-height:1}
+#side-ctrl .sbtn:hover{border-color:var(--hi);color:var(--hi);box-shadow:0 0 12px rgba(71,255,169,.3)}
+
+/* ── LIGHT MODE: gray bg · navy (was amber) · black (was green) · red kept ── */
+body.light{
+  --bg:#c6c9ce; --panel:#d5d8dd; --text:#17285a; --dim:#5b6480;
+  --line:#9aa1ad; --line-soft:rgba(23,40,90,.26);
+  --hi:#0b0b0d; --red:#c62828; --orange:#17285a; --cyan:#1c4a8a;
+}
+body.light::after{background:radial-gradient(ellipse at 50% 34%,transparent 60%,rgba(20,28,60,.10) 100%)}
+body.light .hero h1,body.light .lead,body.light .entry .e-name{text-shadow:none}
+body.light a:hover{text-shadow:none;color:#0a1c50}
+body.light .hero .rail a:hover,body.light #side-ctrl .sbtn:hover{box-shadow:none;border-color:var(--text);color:var(--text)}
+body.light .sub{color:#b58900}                                 /* Core Stack title = yellow */
+body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chips = navy */
+
+@media(max-width:1040px){
+  #side-ctrl{left:auto;right:10px;top:10px;transform:none;flex-direction:row}
+  #side-ctrl .sbtn{writing-mode:horizontal-tb;transform:none;padding:8px 12px;letter-spacing:.14em}
+}
+
+</style>
+</head>
+<body>
+<div id="side-ctrl">
+  <button type="button" class="sbtn" id="lightToggle" aria-pressed="false">◐ Light Mode</button>
+  <a class="sbtn" href="index.html">◂ Retrofuturist Style</a>
+</div>
+<div id="app"></div>
+<script src="js/config.js?v=3"></script>
+<script src="js/recruiter.js?v=3"></script>
+<script>
+(function(){
+  var b=document.body, t=document.getElementById('lightToggle'), K='recruiterLight';
+  function set(on){ b.classList.toggle('light',!!on); t.setAttribute('aria-pressed',String(!!on));
+    t.textContent = on ? '◑ Dark Mode' : '◐ Light Mode';
+    try{ localStorage.setItem(K, on?'1':'0'); }catch(e){} }
+  var saved='0'; try{ saved=localStorage.getItem(K)||'0'; }catch(e){}
+  set(saved==='1');
+  t.addEventListener('click', function(){ set(!b.classList.contains('light')); });
+})();
+</script>
+</body>
+</html>

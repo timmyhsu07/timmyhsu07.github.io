@@ -1,0 +1,13 @@
+{
+  "name": "orbital-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HUD orbital-tracker portfolio — static, no build step.",
+  "scripts": {
+    "start": "npx --yes serve -l 3000 .",
+    "dev": "npx --yes serve -l 3000 .",
+    "serve": "python3 -m http.server 8000"
+  },
+  "keywords": ["portfolio", "threejs", "webgl", "static-site"],
+  "license": "MIT"
+}

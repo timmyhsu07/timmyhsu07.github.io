@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+/* URL router — decide which page loads first from the link you share:
+   yoursite.com/?recruiter  → clean recruiter page
+   yoursite.com  (or /?mission) → this retrofuturist-style view (default) */
+(function(){var q=location.search.toLowerCase();
+  if(/[?&](recruiter|r)(=|&|$)/.test(q)) location.replace("recruiter.html"+location.hash);})();
+</script>
+<title>Timothy Hsu // ML · Quant · Software</title>
+<meta name="description" content="Timothy Hsu — a SENTRY-style retrofuturist portfolio with live NASA data and switchable satellite / orbital / galaxy views.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Saira+Condensed:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css?v=12">
+</head>
+<body>
+
+<!-- #crt-screen is the whole CRT "tube": in retro mode it scales DOWN to FIT inside a
+     black frame (fit, not fill) with rounded corners, like a CRT TV sitting in its bezel.
+     The fisheye bulge lives on #warp; the scanlines/bezel overlay on #retro-fx. -->
+<div id="crt-screen">
+<div id="warp">
+<div id="warp-bg">
+<div id="grid"></div>            <!-- faint neon-green reference grid -->
+<canvas id="stars"></canvas>     <!-- twinkling starfield (2D) -->
+<canvas id="scene"></canvas>     <!-- wireframe spacecraft hero (WebGL) -->
+<canvas id="viewport"></canvas>  <!-- orbital-bodies / galaxy center views (2D) -->
+</div>
+
+<div class="fx" id="scan"></div>
+<div class="fx" id="grain"></div>
+<div class="fx" id="vign"></div>
+
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+
+<div id="hud">
+
+  <!-- ================= LEFT SIDE: view switchers + craft + fleet + feed ================= -->
+  <div id="sidecol">
+    <section class="panel viewsw on" data-view="craft" tabindex="0" role="button" aria-label="Satellite view">
+      <span class="plabel">CRAFT <i class="caret">▾</i></span>
+      <div class="pbody">
+        <div class="cr-top"><span class="cr-k">▸ SPACECRAFT MODEL</span><span class="cr-code" id="cr-code">—</span></div>
+        <div class="cr-name" id="cr-name">—</div>
+        <div class="cr-spec" id="cr-spec"></div>
+        <div class="cr-dsn" id="cr-dsn"></div>
+        <div class="cr-view"><span id="cr-view-lbl">◉ TRACKING</span><span class="open">SATELLITE VIEW ▸</span></div>
+      </div>
+    </section>
+
+    <section class="panel viewsw" id="orbital-mini" data-view="orbital" tabindex="0" role="button" aria-label="Orbital bodies view">
+      <span class="plabel">ORBITAL BODIES <i class="caret">▾</i></span>
+      <canvas class="pviz" data-viz="orbital"></canvas>
+      <div class="pv-cap"><span>HELIOCENTRIC · <b id="orb-n">—</b> NEO</span><span class="open">VIEW ▸</span></div>
+    </section>
+
+    <section class="panel viewsw" id="galaxy-mini" data-view="galaxy" tabindex="0" role="button" aria-label="Galaxy view">
+      <span class="plabel">GALAXY <i class="caret">▾</i></span>
+      <canvas class="pviz" data-viz="galaxy"></canvas>
+      <div class="pv-cap"><span class="gx-meta"><b id="gx-name">MILKY WAY</b><i id="gx-dist">27,000 LY TO CORE</i></span><span class="open">VIEW ▸</span></div>
+    </section>
+
+    <!-- fleet lives here now; only shown while the satellite view is active. collapsed by default -->
+    <section class="panel collapsed" id="fleet">
+      <span class="plabel">FLEET <i class="caret">▾</i></span>
+      <div class="pbody">
+        <div class="fleet-tabs">
+          <button type="button" class="hud-btn on" data-tab="ACTIVE">ACTIVE <b id="n-active">0</b></button>
+          <button type="button" class="hud-btn" data-tab="ENDED">ENDED <b id="n-ended">0</b></button>
+        </div>
+        <div id="fleet-cards"></div>
+      </div>
+    </section>
+
+    <!-- galaxies roster; only shown while the galaxy view is active. collapsed by default -->
+    <section class="panel collapsed" id="galaxies">
+      <span class="plabel">GALAXIES <i class="caret">▾</i></span>
+      <div class="pbody">
+        <div class="feed-hd" id="gx-src">▸ NASA IMAGE LIBRARY · <b id="gx-n">0</b> OBJECTS <span class="live">● LIVE</span></div>
+        <div id="galaxy-cards"></div>
+      </div>
+    </section>
+
+    <section class="panel collapsed" id="feedpanel">
+      <span class="plabel">SOURCE / OBJECT FEED <i class="caret">▾</i></span>
+      <div class="pbody">
+        <div class="feed-hd" id="feed-hd">▸ NASA NeoWs · CONNECTING… <span class="live">● LIVE</span></div>
+        <div id="feedbox"></div>
+      </div>
+    </section>
+  </div>
+
+
+  <!-- ================= TOP-RIGHT: title / identity ================= -->
+  <header class="layer" id="id">
+    <h1 id="title"><em id="k-name">NAME</em><span id="k-mission">MISSION</span></h1>
+    <div class="id-cta"><a class="hud-btn" id="recruiter" href="recruiter.html">▸ RECRUITER LOOK</a></div>
+    <div class="src"><span class="lbl">SRC ·</span> <nav id="rail" aria-label="Links"></nav></div>
+    <div class="counts">
+      TRACKED <b id="t-total">—</b> · PLOTTED <b id="t-plotted">—</b> · PHA <b id="t-sentry">—</b>
+    </div>
+    <div class="stamp" id="stamp">—</div>
+    <div class="dsnline" id="dsnline">◉ DSN · SYNCING…</div>
+    <div class="srcnote">NASA/JPL · NeoWs · DSN NOW · HORIZONS</div>
+  </header>
+
+  <!-- ================= BOTTOM: mission-time bar ================= -->
+  <section class="layer" id="mtime">
+    <button type="button" class="hud-btn sq" id="mt-play" aria-label="Play/pause">❚❚</button>
+    <button type="button" class="hud-btn" id="fisheye" aria-pressed="false" title="Toggle retro CRT look"><i class="led"></i> (RETRO LOOK)</button>
+    <span class="mt-label">MISSION TIME</span>
+    <div class="mt-track"><i id="mt-head"></i></div>
+    <div class="mt-clock" id="clock">--:--:--</div>
+  </section>
+
+  <!-- ============ BOTTOM-CENTER: section nav (inside #hud so it scales/insets with the
+       mission bar in retro — otherwise the two overlap) ============ -->
+  <nav class="layer" id="nav" aria-label="Sections">
+    <button type="button" class="navcard" data-sec="about" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">ABOUT ME</span></button>
+    <button type="button" class="navcard" data-sec="research" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">EXPERIENCE</span></button>
+    <button type="button" class="navcard" data-sec="projects" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">PROJECTS</span></button>
+    <button type="button" class="navcard" data-sec="contact" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">CONTACT</span></button>
+  </nav>
+</div><!-- /#hud -->
+</div><!-- /#warp -->
+
+<!-- one-time CRT power-on flash played when the boot sequence finishes -->
+<div id="crt-boot" aria-hidden="true"></div>
+
+<!-- retro CRT / old-TV overlay (outside #warp so scanlines stay crisp) -->
+<div id="retro-fx" aria-hidden="true">
+  <div class="crt-grille"></div>   <!-- RGB phosphor aperture grille -->
+  <div class="crt-scan"></div>     <!-- horizontal scanlines -->
+  <div class="crt-glass"></div>    <!-- curved-glass vignette + glare + chromatic edges -->
+</div>
+</div><!-- /#crt-screen -->
+
+<!-- floating node tooltip -->
+<div id="tip"><div class="nm"></div><div class="cat"></div></div>
+
+<!-- project detail dossier -->
+<div id="dossier">
+  <div class="top">
+    <div><div class="idx" id="d-idx">OBJ-000</div><h3 id="d-name"></h3><div class="cls" id="d-cls"></div></div>
+    <div class="x" id="d-close">✕</div>
+  </div>
+  <div class="body">
+    <div class="desc" id="d-desc"></div>
+    <div class="meta" id="d-meta"></div>
+    <div class="tech" id="d-tech"></div>
+    <div class="links" id="d-links"></div>
+  </div>
+</div>
+
+<!-- section overlay (ABOUT / RESEARCH / PROJECTS / CONTACT) -->
+<div id="panel-scrim"></div>
+<div id="panel" role="dialog" aria-modal="true" aria-labelledby="p-title" aria-hidden="true">
+  <div class="corner tl"></div><div class="corner tr"></div>
+  <div class="corner bl"></div><div class="corner br"></div>
+  <div class="p-head">
+    <div>
+      <div class="p-kicker" id="p-kicker">SECTION</div>
+      <h3 id="p-title">TITLE</h3>
+    </div>
+    <button type="button" class="hud-btn x" id="p-close" aria-label="Close">✕ CLOSE</button>
+  </div>
+  <div class="p-body" id="p-body"></div>
+</div>
+
+<div id="boot"></div>
+
+<!-- FISHEYE barrel-distortion filter (displacement map injected by JS) -->
+<svg id="fe-svg" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="fisheye-filter" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feImage id="fisheye-map" result="map" preserveAspectRatio="none"/>
+      <feDisplacementMap id="fisheye-disp" in="SourceGraphic" in2="map" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<script src="js/config.js?v=12"></script>
+<script src="js/data.geo.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="js/app.js?v=12"></script>
+</body>
+</html>
