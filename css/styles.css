@@ -195,8 +195,8 @@ body:not(.retro) .hud-btn:hover,.hud-btn:focus-visible,.hud-btn.crt-hover{outlin
 #rail a::before{content:" · ";color:var(--text-dim)}
 #rail a:first-child::before{content:" "}
 body:not(.retro) #rail a:hover,#rail a.crt-hover{color:#ff8f8f;filter:brightness(1.15);text-shadow:0 0 8px var(--red),0 0 18px rgba(255,71,71,.55)}
-#id .counts{margin-top:7px;font-family:var(--tt);font-size:12px;color:var(--text-dim)}
-#id .counts b{color:var(--text);font-weight:400}
+#dsn-side .counts{margin-top:4px;font-family:var(--tt);font-size:11px;letter-spacing:.05em;color:var(--text-dim)}
+#dsn-side .counts b{color:var(--text);font-weight:400}
 #id .stamp{margin-top:4px;font-family:var(--tt);font-size:12px;color:var(--text)}
 #id .credit{margin-top:4px;font-size:11.5px;letter-spacing:.06em;color:var(--text-dim)}
 #id .credit b{color:var(--text)} #id .credit b#k-handle{color:var(--hi)}

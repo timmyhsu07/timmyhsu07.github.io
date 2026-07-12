@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Saira+Condensed:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=15">
+<link rel="stylesheet" href="css/styles.css?v=16">
 </head>
 <body>
 
@@ -100,9 +100,12 @@
       </div>
     </section>
 
-    <!-- DSN ground-station status, docked beside the craft picker -->
+    <!-- DSN ground-station status + tracking counters, docked beside the craft picker -->
     <div id="dsn-side">
       <div class="dsnline" id="dsnline">◉ DSN · SYNCING…</div>
+      <div class="counts">
+        TRACKED <b id="t-total">—</b> · PLOTTED <b id="t-plotted">—</b> · PHA <b id="t-sentry">—</b>
+      </div>
       <div class="srcnote">NASA/JPL · NeoWs · DSN NOW · HORIZONS</div>
     </div>
   </div>
@@ -113,9 +116,6 @@
     <h1 id="title"><em id="k-name">NAME</em><span id="k-mission">MISSION</span></h1>
     <div class="id-cta"><a class="hud-btn" id="recruiter" href="recruiter.html">▸ RECRUITER LOOK</a></div>
     <div class="src"><span class="lbl">SRC ·</span> <nav id="rail" aria-label="Links"></nav></div>
-    <div class="counts">
-      TRACKED <b id="t-total">—</b> · PLOTTED <b id="t-plotted">—</b> · PHA <b id="t-sentry">—</b>
-    </div>
     <div class="stamp" id="stamp">—</div>
   </header>
 
