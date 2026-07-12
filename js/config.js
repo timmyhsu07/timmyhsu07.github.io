@@ -43,7 +43,7 @@ const CONFIG = {
     { label:"GITHUB",   url:"https://github.com/timmyhsu07" },
     { label:"LINKEDIN", url:"https://www.linkedin.com/in/timhsu7/" },
     { label:"EMAIL",    url:"mailto:timmyhsu07@gmail.com" },
-    { label:"RESUME",   url:"Timothy_Hsu_Resume_2026.pdf?v=2" },   // save the PDF here with this name; bump ?v= when you replace it
+    { label:"RESUME",   url:"Timothy_Hsu_Resume_2026.pdf?v=3" },   // save the PDF here with this name; bump ?v= when you replace it
   ],
 
   // ── ABOUT ME ──  (left panel + overlay). Mirrors the LinkedIn "About".
@@ -109,7 +109,7 @@ const CONFIG = {
       { k:"EMAIL",    v:"timmyhsu07@gmail.com",     url:"mailto:timmyhsu07@gmail.com" },
       { k:"GITHUB",   v:"github.com/timmyhsu07",     url:"https://github.com/timmyhsu07" },
       { k:"LINKEDIN", v:"linkedin.com/in/timhsu7",   url:"https://www.linkedin.com/in/timhsu7/" },
-      { k:"RESUME",   v:"Timothy_Hsu_Resume_2026.pdf", url:"Timothy_Hsu_Resume_2026.pdf?v=2" },
+      { k:"RESUME",   v:"Timothy_Hsu_Resume_2026.pdf", url:"Timothy_Hsu_Resume_2026.pdf?v=3" },
     ],
   },
 
