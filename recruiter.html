@@ -121,15 +121,20 @@ body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chi
   <a class="sbtn" href="index.html">◂ Retrofuturist Style</a>
 </div>
 <div id="app"></div>
-<script src="js/config.js?v=3"></script>
-<script src="js/recruiter.js?v=3"></script>
+<script src="js/config.js?v=13"></script>
+<script src="js/recruiter.js?v=13"></script>
 <script>
 (function(){
   var b=document.body, t=document.getElementById('lightToggle'), K='recruiterLight';
   function set(on){ b.classList.toggle('light',!!on); t.setAttribute('aria-pressed',String(!!on));
     t.textContent = on ? '◑ Dark Mode' : '◐ Light Mode';
     try{ localStorage.setItem(K, on?'1':'0'); }catch(e){} }
-  var saved='0'; try{ saved=localStorage.getItem(K)||'0'; }catch(e){}
+  // ?light (or ?hire) in the URL forces light mode — that's the recruiter share link;
+  // ?dark forces dark; otherwise fall back to the visitor's saved choice.
+  var q=location.search.toLowerCase(), saved='0';
+  try{ saved=localStorage.getItem(K)||'0'; }catch(e){}
+  if(/[?&](light|hire)(=|&|$)/.test(q)) saved='1';
+  else if(/[?&]dark(=|&|$)/.test(q)) saved='0';
   set(saved==='1');
   t.addEventListener('click', function(){ set(!b.classList.contains('light')); });
 })();

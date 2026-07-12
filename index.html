@@ -8,9 +8,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script>
 /* URL router — decide which page loads first from the link you share:
-   yoursite.com/?recruiter  → clean recruiter page
+   yoursite.com/?hire       → recruiter page in LIGHT mode (the recruiter share link)
+   yoursite.com/?recruiter  → recruiter page (visitor's saved light/dark)
    yoursite.com  (or /?mission) → this retrofuturist-style view (default) */
 (function(){var q=location.search.toLowerCase();
+  if(/[?&]hire(=|&|$)/.test(q)) return location.replace("recruiter.html?light"+location.hash);
   if(/[?&](recruiter|r)(=|&|$)/.test(q)) location.replace("recruiter.html"+location.hash);})();
 </script>
 <title>Timothy Hsu // ML · Quant · Software</title>
