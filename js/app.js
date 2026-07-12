@@ -46,8 +46,7 @@ initStars(); addEventListener("resize",initStars);
 
 /* =====================  2D VIEWS: orbital bodies + galaxy  ===================== */
 // Mini panels stay animated; you can switch the full-screen center to either.
-let neoObjs=[], neoScatter=[];
-const beltParticles=[]; for(let i=0;i<420;i++)beltParticles.push({a:Math.random()*Math.PI*2,r:0.70+Math.random()*0.12,s:0.02+Math.random()*0.05,red:Math.random()<0.14});
+let neoObjs=[], neoOrbits=[];
 // Real, catalogued galaxies (name · distance in light-years · Hubble morphology).
 // The view cycles through them like the fleet; each renders to its actual shape.
 const GALAXIES=[
@@ -81,9 +80,30 @@ const PLANETS=[
   {r:0.75,c:"#a8ece4",s:0.24,ph:4.1,n:"URANUS", sz:3.5},
   {r:0.86,c:"#5f8fff",s:0.18,ph:0.7,n:"NEPTUNE",sz:3.5},
   {r:0.95,c:"#c9b8a8",s:0.13,ph:3.2,n:"PLUTO",  sz:1.5}];
+/* Each plotted NEO gets a 3D Keplerian orbit (semi-major axis, eccentricity,
+   inclination, node, periapsis — seeded stably from its designation) rendered as a
+   tilted ellipse threading the map, with dust particles scattered along it. */
+const hashStr=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;};
 function rebuildNeoScatter(){
-  neoScatter=neoObjs.slice(0,120).map((o,i)=>({a:(i*2.399+(o.ld||10)*0.13)%(Math.PI*2),
-    rr:0.44+(Math.min(o.ld||10,30)/30-0.5)*0.18, red:o.haz||(o.ld||99)<3}));
+  neoOrbits=neoObjs.slice(0,22).map(o=>{
+    const r1=hashStr(o.des+"a"),r2=hashStr(o.des+"e"),r3=hashStr(o.des+"i"),
+          r4=hashStr(o.des+"O"),r5=hashStr(o.des+"w");
+    const a=0.9+r1*2.6, e=0.15+r2*0.55, inc=(r3-0.5)*1.1, Om=r4*6.2832, w=r5*6.2832;
+    const cO=Math.cos(Om),sO=Math.sin(Om),cI=Math.cos(inc),sI=Math.sin(inc),cW=Math.cos(w),sW=Math.sin(w);
+    const at=v=>{                                             // true anomaly → mapped 3D point
+      const rAU=a*(1-e*e)/(1+e*Math.cos(v));
+      const xa=rAU*(Math.cos(v)*cW-Math.sin(v)*sW), za=rAU*(Math.cos(v)*sW+Math.sin(v)*cW);
+      const y=za*sI, z2=za*cI;
+      const X=xa*cO+z2*sO, Z=-xa*sO+z2*cO;
+      const len=Math.hypot(X,y,Z)||1e-6, f=mapAU(len)/len;
+      return {X:X*f, Y:y*f, Z:Z*f};
+    };
+    const pts=[]; for(let k=0;k<=64;k++)pts.push(at(k/64*6.2832));
+    const dust=[]; for(let k=0;k<26;k++){ const p=at(hashStr(o.des+"d"+k)*6.2832);
+      const j=0.012; dust.push({X:p.X+(hashStr(o.des+"x"+k)-0.5)*j, Y:p.Y+(hashStr(o.des+"y"+k)-0.5)*j,
+        Z:p.Z+(hashStr(o.des+"z"+k)-0.5)*j, tw:hashStr(o.des+"t"+k)*6.2832}); }
+    return {haz:!!o.haz, pts, dust};
+  });
 }
 /* SENTRY-style HELIOCENTRIC SOLAR MAP — CME plumes and solar flares are REAL events
    from NASA DONKI (Space Weather Database). Each CME is modeled physically: its plume
@@ -91,7 +111,7 @@ function rebuildNeoScatter(){
    and its front sits at speed × time-since-launch (converted to the map's compressed
    AU scale) — so the map shows where each ejection actually is right now.
    ORB/CME/FLR/SOL buttons toggle the layers; drag orbits, scroll zooms. */
-const MAP_LAYERS={orb:false,cme:true,flr:true,sol:true};
+const MAP_LAYERS={orb:true,cme:true,flr:true,sol:true};
 let vpZoom=1;
 // the map compresses planet distances (Earth 1 AU→0.23, Jupiter 5.2→0.46 …); this
 // fits that same curve so CME fronts land at the right radius among the planets
@@ -113,8 +133,9 @@ function buildCmePlumes(evs){
     const parts=[]; const N=ev.halo?680:520;
     for(let i=0;i<N;i++) parts.push({
       off:(Math.random()+Math.random()+Math.random())/1.5-1,   // ≈gaussian across the cone
+      up:(Math.random()+Math.random()+Math.random())/1.5-1,    // …and out of the ecliptic
       f:Math.pow(Math.random(),0.72),                          // denser toward the sun
-      j:(Math.random()-0.5)*0.05, z:(Math.random()-0.5),
+      j:(Math.random()-0.5)*0.05,
       sz:Math.random()<0.12?2.4:1.6, br:0.4+Math.random()*0.6 });
     return {...ev, parts};
   });
@@ -123,35 +144,54 @@ buildCmePlumes();   // instant fallback; replaced when DONKI lands
 function drawOrbital(x,w,h,t,big){
   const cx=w*0.5, cy=h*0.52, zm=big?vpZoom:1, R=Math.min(w,h)*(big?0.46:0.52)*zm;
   const tilt=Math.max(0.12,Math.min(0.92, 0.40 + (big?vpTilt:0))), spin=(big?vpSpin:0);
+  // true 3D camera: spin rotates the scene about the ecliptic pole, tilt pitches it;
+  // out-of-plane (Y) motion foreshortens as the view goes face-on — like SENTRY
+  const vf=Math.sqrt(Math.max(0.1,1-tilt*tilt)), cS=Math.cos(spin), sS=Math.sin(spin);
+  const prj=(X,Y,Z)=>{ const x2=X*cS+Z*sS, z2=-X*sS+Z*cS;
+    return {x:cx+x2*R, y:cy+z2*R*tilt-Y*R*vf}; };
   x.lineWidth=1;
-  // ORB · faint planet orbit rings
-  if(MAP_LAYERS.orb||!big){ PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt;
-    x.strokeStyle="rgba(122,90,20,.40)"; x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,7); x.stroke();}); }
-  // CME · real DONKI ejections — each plume's front sits at speed × elapsed time,
-  // aimed along its measured longitude, spread across its measured half-angle
+  // ORB · orbit lines — every plotted NEO's tilted Keplerian ellipse (red = PHA),
+  // Earth's orbit in blue, the other planets' rings in faint amber
+  if(MAP_LAYERS.orb){
+    neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
+      x.strokeStyle=o.haz?"rgba(255,64,47,.34)":"rgba(240,179,42,.20)";
+      x.beginPath(); o.pts.forEach((p,i)=>{const s=prj(p.X,p.Y,p.Z); i?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);}); x.stroke(); });
+    PLANETS.forEach(p=>{ const earth=p.n==="EARTH";
+      x.strokeStyle=earth?"rgba(95,155,255,.55)":"rgba(122,90,20,.35)"; x.lineWidth=earth?1.3:1;
+      x.beginPath(); for(let k=0;k<=64;k++){ const a=k/64*6.2832, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
+        k?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);} x.stroke(); });
+    x.lineWidth=1;
+  }
+  // dust along every NEO orbit — the scattered squares filling the SENTRY map
+  neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
+    o.dust.forEach(d=>{ const s=prj(d.X,d.Y,d.Z), tw=0.55+0.45*Math.sin(t*1.4+d.tw);
+      x.fillStyle=o.haz?`rgba(255,70,50,${0.65*tw})`:`rgba(240,179,42,${0.5*tw})`;
+      x.fillRect(s.x,s.y,big?2:1.4,big?2:1.4); }); });
+  // CME · real DONKI ejections — 3D cones aimed along each event's measured
+  // longitude AND latitude, front at speed × elapsed time
   if(MAP_LAYERS.cme){ const now=Date.now();
     cmePlumes.forEach(p=>{
       const travAU=Math.min(46, p.speed*((now-p.start)/1000)/AU_KM_);
       if(travAU<0.02)return;
-      const lonR=(p.lon||0)*Math.PI/180, haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180);
-      const fast=p.speed>=800;
+      const lonR=(p.lon||0)*Math.PI/180, latR=(p.lat||0)*Math.PI/180,
+            haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180), fast=p.speed>=800;
       p.parts.forEach((q,i)=>{ if(!big&&i%4)return;
-        const au=q.f*travAU, r=mapAU(au); if(r>1.15)return;
-        const a=(p.halo? q.off*Math.PI : lonR+q.off*haR)+spin+q.j;
-        const px=cx+Math.cos(a)*R*r, py=cy+Math.sin(a)*R*r*tilt+q.z*R*0.05*r;
-        const core=au<0.12, al=(core?0.95:q.br*(1-r*0.7))*(big?1:0.8), s=q.sz*(big?1:0.75);
+        const au=q.f*travAU, rm=mapAU(au); if(rm>1.15)return;
+        const az=(p.halo? q.off*Math.PI : lonR+q.off*haR)+q.j;
+        const el=latR+q.up*haR*0.75;
+        const s=prj(rm*Math.cos(el)*Math.cos(az), rm*Math.sin(el), rm*Math.cos(el)*Math.sin(az));
+        const core=au<0.12, al=(core?0.95:q.br*(1-rm*0.7))*(big?1:0.8), sz=q.sz*(big?1:0.75);
         x.fillStyle=core?`rgba(255,246,214,${al})`:(fast?`rgba(255,76,52,${al})`:`rgba(244,196,98,${al})`);
-        x.fillRect(px,py,s,s); });
+        x.fillRect(s.x,s.y,sz,sz); });
     }); }
-  // FLR · real DONKI flares — sparks at the sun's rim toward each flare's source
-  // longitude, sized/coloured by GOES class (X red · M orange · C gold)
+  // FLR · real DONKI flares at the sun's rim (X red · M orange · C gold)
   if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).forEach((f,k)=>{
-    const a=(f.lon||0)*Math.PI/180+spin, tw=0.5+0.5*Math.sin(t*3+k*1.7);
+    const a=(f.lon||0)*Math.PI/180, tw=0.5+0.5*Math.sin(t*3+k*1.7);
     const cls=(f.cls||"C")[0], sz=cls==="X"?4.5:cls==="M"?3.4:2.4;
     const col=cls==="X"?"255,80,60":cls==="M"?"255,150,70":"255,214,122";
-    const px=cx+Math.cos(a)*R*0.045, py=cy+Math.sin(a)*R*0.045*tilt;
+    const s=prj(Math.cos(a)*0.045,0,Math.sin(a)*0.045);
     x.fillStyle=`rgba(${col},${0.4+0.6*tw})`;
-    x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-sz,-sz,sz*2,sz*2); x.restore(); }); }
+    x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-sz,-sz,sz*2,sz*2); x.restore(); }); }
   // SOL · the blazing core
   if(MAP_LAYERS.sol){ const g=x.createRadialGradient(cx,cy,0,cx,cy,R*0.30);
     g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
@@ -160,9 +200,9 @@ function drawOrbital(x,w,h,t,big){
   x.fillStyle="#fff6de"; x.shadowColor="#ffd27a"; x.shadowBlur=big?30:12;
   x.beginPath(); x.arc(cx,cy,(big?9:4)*Math.max(zm,0.8),0,7); x.fill(); x.shadowBlur=0;
   if(big&&MAP_LAYERS.sol){ x.fillStyle="rgba(71,255,169,.8)"; x.font="10px 'Share Tech Mono',monospace"; x.fillText("SOL",cx+12,cy+3); }
-  // planets — pale-cyan discs with soft glow + TT labels (SENTRY palette; Earth stays blue)
-  PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt,a=t*p.s+p.ph+spin,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    const psz=(p.sz||2.4)*(big?1.6:0.7)*Math.min(zm,1.6);
+  // planets — pale-cyan discs with soft glow + TT labels (Earth stays blue)
+  PLANETS.forEach(p=>{ const a=t*p.s+p.ph, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
+    const px=s.x, py=s.y, psz=(p.sz||2.4)*(big?1.6:0.7)*Math.min(zm,1.6);
     const col=p.n==="EARTH"?"#5f9bff":"#bfe9f2";
     if(big&&p.rings){ x.save(); x.translate(px,py); x.rotate(-0.5);
       x.strokeStyle="rgba(191,233,242,.5)"; x.lineWidth=1.1;
@@ -174,11 +214,11 @@ function drawOrbital(x,w,h,t,big){
       x.fillStyle="rgba(207,211,220,.9)"; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
       if(m.nm==="MOON"){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
     if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
-  // spacecraft — green diamonds, like SENTRY's ✦ JUNO markers
-  if(big){ [["JUNO",0.47,"#54ff8a"],["PSP",0.13,"#54ff8a"],["VGR-1",1.02,"#54ff8a"]].forEach(([nm,rf,c],k)=>{
-    const a=t*0.22+k*2.3+spin,rx=R*rf,ry=rx*tilt,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    x.fillStyle=c; x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-3.2,-3.2,6.4,6.4); x.restore();
-    x.font="10px 'Share Tech Mono',monospace"; x.fillStyle="rgba(84,255,138,.9)"; x.fillText("◆ "+nm,px+8,py+3); }); }
+  // spacecraft — green diamonds, like SENTRY's ◆ JUNO markers
+  if(big){ [["JUNO",0.47],["PSP",0.13],["VGR-1",1.02]].forEach(([nm,rf],k)=>{
+    const a=t*0.22+k*2.3, s=prj(Math.cos(a)*rf,0,Math.sin(a)*rf);
+    x.fillStyle="#54ff8a"; x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-3.2,-3.2,6.4,6.4); x.restore();
+    x.font="10px 'Share Tech Mono',monospace"; x.fillStyle="rgba(84,255,138,.9)"; x.fillText("◆ "+nm,s.x+8,s.y+3); }); }
 }
 /* GEOCENTRIC EARTH MAP — opened from the SOURCE/OBJECT FEED panel. Every tracked NEO
    from the live NeoWs feed becomes a trajectory line streaking past Earth (red = PHA),
@@ -592,7 +632,7 @@ async function loadDONKI(){
     const evs=(cmes||[]).map(c=>{
       const as=(c.cmeAnalyses||[]); const a=as.find(v=>v.isMostAccurate)||as[0]; if(!a)return null;
       const eta=((a.enlilList||[])[0]||{}).estimatedShockArrivalTime||null;
-      return { lon:a.longitude, halfAngle:a.halfAngle||30, speed:a.speed||400,
+      return { lon:a.longitude, lat:a.latitude||0, halfAngle:a.halfAngle||30, speed:a.speed||400,
         start:Date.parse(c.startTime), halo:a.longitude==null||(a.halfAngle||0)>=60, eta };
     }).filter(Boolean);
     if(evs.length)buildCmePlumes(evs);
@@ -639,16 +679,16 @@ const craftPivot=new THREE.Group(); craftHolder.add(craftPivot);
       blending:THREE.AdditiveBlending,depthWrite:false}));
   ring.rotation.x=Math.PI*tilt; craftHolder.add(ring);
 });
-// whisper-faint green wash centred on the craft — an inverse-vignette hint, not a
-// visible disc: very low peak with a long smooth falloff so no circular edge reads
+// subliminal green tint centred on the scene — barely perceptible, like SENTRY's:
+// you only notice it as a faint warmth in the black, never as a circle
 const glowTex=(()=>{ const c=document.createElement("canvas"); c.width=c.height=256;
   const g=c.getContext("2d"), gr=g.createRadialGradient(128,128,0,128,128,128);
-  gr.addColorStop(0,"rgba(71,255,169,.16)"); gr.addColorStop(.3,"rgba(71,255,169,.08)");
-  gr.addColorStop(.65,"rgba(71,255,169,.025)"); gr.addColorStop(1,"rgba(71,255,169,0)");
+  gr.addColorStop(0,"rgba(71,255,169,.055)"); gr.addColorStop(.4,"rgba(71,255,169,.028)");
+  gr.addColorStop(.75,"rgba(71,255,169,.01)"); gr.addColorStop(1,"rgba(71,255,169,0)");
   g.fillStyle=gr; g.fillRect(0,0,256,256); return new THREE.CanvasTexture(c); })();
 const craftGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,
-  opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false}));
-craftGlow.scale.set(11,11,1); craftPivot.add(craftGlow);
+  opacity:0.6,blending:THREE.AdditiveBlending,depthWrite:false}));
+craftGlow.scale.set(17,17,1); craftPivot.add(craftGlow);
 
 /* ---- 3D INTERACTIVE GALAXIES — point clouds you can drag to orbit ---- */
 const galaxyHolder=new THREE.Group(); scene.add(galaxyHolder); galaxyHolder.visible=false;
