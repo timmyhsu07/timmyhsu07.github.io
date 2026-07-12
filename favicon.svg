@@ -1,42 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- CRT tube background with faint phosphor scanlines -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- "TH" phosphor monogram — bladed letterforms, CRT scanline fill, green glow -->
   <defs>
-    <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse">
-      <rect width="4" height="2" fill="rgba(71,255,169,.07)"/>
+    <path id="mono" d="
+      M100,150 L262,46 L269,75 L212,117 L138,156 Z
+      M262,46 L279,160 L259,482 L243,170 Z
+      M201,124 L219,115 L206,365 Z
+      M266,258 L357,240 L354,266 L266,286 Z
+      M368,136 L378,264 L353,398 L337,391 L348,258 Z"/>
+    <pattern id="scan" width="6" height="5" patternUnits="userSpaceOnUse">
+      <rect width="6" height="5" fill="#54e893"/>
+      <rect width="6" height="1.6" y="3.4" fill="#0e4229"/>
+      <rect width="6" height="0.8" y="0" fill="#c9ffe2"/>
     </pattern>
-    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#fff6de"/>
-      <stop offset="45%" stop-color="#ffd27a"/>
-      <stop offset="100%" stop-color="rgba(255,160,70,0)"/>
-    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+    <filter id="halo" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
   </defs>
-  <rect width="64" height="64" rx="13" fill="#05040a"/>
-  <rect width="64" height="64" rx="13" fill="url(#scan)"/>
-  <!-- red bracketed corners, like the HUD panels -->
-  <g stroke="#ff4747" stroke-width="2.4" fill="none" opacity=".9">
-    <path d="M7 16 V9 a2 2 0 0 1 2-2 h7"/>
-    <path d="M48 7 h7 a2 2 0 0 1 2 2 v7"/>
-    <path d="M57 48 v7 a2 2 0 0 1-2 2 h-7"/>
-    <path d="M16 57 H9 a2 2 0 0 1-2-2 v-7"/>
+  <rect width="512" height="512" fill="#030705"/>
+  <g transform="translate(30,0)">
+    <use href="#mono" fill="#2fbf72" filter="url(#glow)" opacity=".8"/>
+    <use href="#mono" fill="#9dffcd" filter="url(#halo)" opacity=".9"/>
+    <use href="#mono" fill="url(#scan)"/>
+    <use href="#mono" fill="none" stroke="#eafff3" stroke-width="1.6" stroke-linejoin="miter" opacity=".85"/>
   </g>
-  <!-- orbit web -->
-  <g transform="rotate(-18 32 34)">
-    <ellipse cx="32" cy="34" rx="22" ry="9" fill="none" stroke="#f0b32a" stroke-width="1.7"/>
-    <ellipse cx="32" cy="34" rx="14" ry="5.6" fill="none" stroke="rgba(240,179,42,.45)" stroke-width="1.2"/>
-  </g>
-  <!-- debris -->
-  <g fill="#f0b32a">
-    <rect x="20" y="24" width="1.6" height="1.6"/>
-    <rect x="45" y="43" width="1.6" height="1.6"/>
-    <rect x="14" y="41" width="1.6" height="1.6"/>
-  </g>
-  <g fill="#ff4747">
-    <rect x="42" y="21" width="1.6" height="1.6"/>
-    <rect x="24" y="46" width="1.6" height="1.6"/>
-  </g>
-  <!-- sun -->
-  <circle cx="32" cy="34" r="9" fill="url(#sun)"/>
-  <circle cx="32" cy="34" r="4" fill="#fff6de"/>
-  <!-- tracked craft: green diamond on the outer orbit -->
-  <rect x="49.4" y="24.6" width="5" height="5" transform="rotate(45 51.9 27.1)" fill="#47ffa9"/>
 </svg>
