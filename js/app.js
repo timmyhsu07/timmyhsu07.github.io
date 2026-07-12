@@ -85,17 +85,41 @@ function rebuildNeoScatter(){
   neoScatter=neoObjs.slice(0,120).map((o,i)=>({a:(i*2.399+(o.ld||10)*0.13)%(Math.PI*2),
     rr:0.44+(Math.min(o.ld||10,30)/30-0.5)*0.18, red:o.haz||(o.ld||99)<3}));
 }
-/* SENTRY-style HELIOCENTRIC SOLAR MAP — a dense CME particle plume (gold + red lobes)
-   pouring out of a blazing sun, pale-cyan planets with TT labels, and green spacecraft
-   diamonds. ORB/CME/FLR/SOL buttons toggle the layers; drag orbits, scroll zooms. */
+/* SENTRY-style HELIOCENTRIC SOLAR MAP — CME plumes and solar flares are REAL events
+   from NASA DONKI (Space Weather Database). Each CME is modeled physically: its plume
+   points along the event's heliographic longitude, spans its measured half-angle cone,
+   and its front sits at speed × time-since-launch (converted to the map's compressed
+   AU scale) — so the map shows where each ejection actually is right now.
+   ORB/CME/FLR/SOL buttons toggle the layers; drag orbits, scroll zooms. */
 const MAP_LAYERS={orb:false,cme:true,flr:true,sol:true};
 let vpZoom=1;
-const cmeParticles=[]; for(let i=0;i<2600;i++){ const red=i%5<2;   // 2 red : 3 gold
-  cmeParticles.push({ a:(red?Math.PI+0.55:-0.45)+(Math.random()-0.5)*2.4,
-    r:0.04+Math.pow(Math.random(),1.7)*1.05, s:0.004+Math.random()*0.012,
-    z:(Math.random()-0.5)*0.5, sz:Math.random()<0.12?2.4:1.6, red,
-    br:0.35+Math.random()*0.65 }); }
-const flares=[]; for(let i=0;i<14;i++)flares.push({a:Math.random()*6.2832,r:0.10+Math.random()*0.22,tw:Math.random()*6.2832});
+// the map compresses planet distances (Earth 1 AU→0.23, Jupiter 5.2→0.46 …); this
+// fits that same curve so CME fronts land at the right radius among the planets
+const mapAU=au=>0.23*Math.pow(Math.max(au,0.001),0.42);
+const AU_KM_=1.496e8;
+let cmePlumes=[], solFlares=[], solarStatus="⊙ DONKI · SYNCING…";
+// fallback modeled events (recent real-shaped values) so the map never renders empty
+const CME_FALLBACK=[
+  {lon:22, halfAngle:29, speed:488, start:Date.now()-30*36e5, halo:false},
+  {lon:156,halfAngle:24, speed:620, start:Date.now()-20*36e5, halo:false},
+  {lon:-95,halfAngle:38, speed:450, start:Date.now()-52*36e5, halo:false}];
+const FLR_FALLBACK=[{lon:-70,cls:"C5.9",t:Date.now()-2*36e5}];
+function buildCmePlumes(evs){
+  // sample up to 12 events spread across the whole window — older CMEs have physically
+  // traveled further out (speed × age), so the plume field spans Mercury→Jupiter
+  let list=(evs&&evs.length?evs:CME_FALLBACK);
+  if(list.length>12){ const step=list.length/12; list=Array.from({length:12},(_,i)=>list[Math.floor(i*step)]); }
+  cmePlumes=list.map(ev=>{
+    const parts=[]; const N=ev.halo?680:520;
+    for(let i=0;i<N;i++) parts.push({
+      off:(Math.random()+Math.random()+Math.random())/1.5-1,   // ≈gaussian across the cone
+      f:Math.pow(Math.random(),0.72),                          // denser toward the sun
+      j:(Math.random()-0.5)*0.05, z:(Math.random()-0.5),
+      sz:Math.random()<0.12?2.4:1.6, br:0.4+Math.random()*0.6 });
+    return {...ev, parts};
+  });
+}
+buildCmePlumes();   // instant fallback; replaced when DONKI lands
 function drawOrbital(x,w,h,t,big){
   const cx=w*0.5, cy=h*0.52, zm=big?vpZoom:1, R=Math.min(w,h)*(big?0.46:0.52)*zm;
   const tilt=Math.max(0.12,Math.min(0.92, 0.40 + (big?vpTilt:0))), spin=(big?vpSpin:0);
@@ -103,18 +127,31 @@ function drawOrbital(x,w,h,t,big){
   // ORB · faint planet orbit rings
   if(MAP_LAYERS.orb||!big){ PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt;
     x.strokeStyle="rgba(122,90,20,.40)"; x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,7); x.stroke();}); }
-  // CME · the particle plume (slow outward drift, gold + red lobes, brighter near the sun)
-  if(MAP_LAYERS.cme){ cmeParticles.forEach((p,i)=>{ if(!big&&i%4)return;
-    const rr=(p.r+t*p.s*0.18)%1.12, a=p.a+spin+rr*0.35;
-    const px=cx+Math.cos(a)*R*rr, py=cy+Math.sin(a)*R*rr*tilt+p.z*R*0.10;
-    const core=rr<0.15, al=(core?0.95:p.br*(1-rr*0.65))*(big?1:0.8), s=p.sz*(big?1:0.75);
-    x.fillStyle=core?`rgba(255,246,214,${al})`:(p.red?`rgba(255,76,52,${al})`:`rgba(244,196,98,${al})`);
-    x.fillRect(px,py,s,s); }); }
-  // FLR · pulsing flare sparks close to the sun
-  if(MAP_LAYERS.flr&&big){ flares.forEach(f=>{ const a=f.a+spin, tw=0.5+0.5*Math.sin(t*3+f.tw);
-    const px=cx+Math.cos(a)*R*f.r, py=cy+Math.sin(a)*R*f.r*tilt;
-    x.fillStyle=`rgba(255,214,122,${0.35+0.6*tw})`;
-    x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-2,-2,4,4); x.restore(); }); }
+  // CME · real DONKI ejections — each plume's front sits at speed × elapsed time,
+  // aimed along its measured longitude, spread across its measured half-angle
+  if(MAP_LAYERS.cme){ const now=Date.now();
+    cmePlumes.forEach(p=>{
+      const travAU=Math.min(46, p.speed*((now-p.start)/1000)/AU_KM_);
+      if(travAU<0.02)return;
+      const lonR=(p.lon||0)*Math.PI/180, haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180);
+      const fast=p.speed>=800;
+      p.parts.forEach((q,i)=>{ if(!big&&i%4)return;
+        const au=q.f*travAU, r=mapAU(au); if(r>1.15)return;
+        const a=(p.halo? q.off*Math.PI : lonR+q.off*haR)+spin+q.j;
+        const px=cx+Math.cos(a)*R*r, py=cy+Math.sin(a)*R*r*tilt+q.z*R*0.05*r;
+        const core=au<0.12, al=(core?0.95:q.br*(1-r*0.7))*(big?1:0.8), s=q.sz*(big?1:0.75);
+        x.fillStyle=core?`rgba(255,246,214,${al})`:(fast?`rgba(255,76,52,${al})`:`rgba(244,196,98,${al})`);
+        x.fillRect(px,py,s,s); });
+    }); }
+  // FLR · real DONKI flares — sparks at the sun's rim toward each flare's source
+  // longitude, sized/coloured by GOES class (X red · M orange · C gold)
+  if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).forEach((f,k)=>{
+    const a=(f.lon||0)*Math.PI/180+spin, tw=0.5+0.5*Math.sin(t*3+k*1.7);
+    const cls=(f.cls||"C")[0], sz=cls==="X"?4.5:cls==="M"?3.4:2.4;
+    const col=cls==="X"?"255,80,60":cls==="M"?"255,150,70":"255,214,122";
+    const px=cx+Math.cos(a)*R*0.045, py=cy+Math.sin(a)*R*0.045*tilt;
+    x.fillStyle=`rgba(${col},${0.4+0.6*tw})`;
+    x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-sz,-sz,sz*2,sz*2); x.restore(); }); }
   // SOL · the blazing core
   if(MAP_LAYERS.sol){ const g=x.createRadialGradient(cx,cy,0,cx,cy,R*0.30);
     g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
@@ -255,6 +292,7 @@ function setView(mode){
   const mu=$("#map-ui"); if(mu){ mu.hidden=!(mode==="orbital"||mode==="geo");
     const chip=$("#map-chip"); if(chip)chip.textContent=VIEW_LABEL[mode]||"";
     const tg=$("#map-toggles"); if(tg)tg.style.display=(mode==="orbital")?"flex":"none";
+    const ms=$("#map-status"); if(ms)ms.style.display=(mode==="orbital")?"block":"none";  // solar weather is helio-only
     if(mode==="orbital"||mode==="geo")vpZoom=1; }
 }
 $$("#sidecol .viewsw").forEach(el=>{
@@ -536,6 +574,42 @@ async function loadDSN(){
   }catch(e){
     console.warn("DSN Now fetch failed.",e);
     $("#dsnline").className="dsnline off"; $("#dsnline").textContent="◉ DSN · FEED UNAVAILABLE";
+  }
+}
+
+/* =====================  NASA DONKI — REAL CMEs · FLARES · Kp  ===================== */
+const fmtAgo=ms=>{const h=Math.floor(ms/36e5),m=Math.floor(ms/6e4)%60;return `${String(h).padStart(2,"0")}H ${String(m).padStart(2,"0")}M`;};
+function parseSrcLon(loc){ const m=/([EW])(\d+)/.exec(loc||""); return m?(m[1]==="W"?1:-1)*parseInt(m[2]):0; }
+function setSolarStatus(s){ solarStatus=s; const el=$("#map-status"); if(el)el.textContent=s; }
+async function loadDONKI(){
+  const key=CONFIG.nasaKey||"DEMO_KEY", end=new Date().toISOString().slice(0,10),
+        start=new Date(Date.now()-10*864e5).toISOString().slice(0,10);
+  const get=ep=>fetch(`https://api.nasa.gov/DONKI/${ep}?startDate=${start}&endDate=${end}&api_key=${key}`)
+    .then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});
+  try{
+    const [cmes,flrs,gsts]=await Promise.all([get("CME").catch(()=>[]),get("FLR").catch(()=>[]),get("GST").catch(()=>[])]);
+    // CMEs → physical plume params (most-accurate analysis per event)
+    const evs=(cmes||[]).map(c=>{
+      const as=(c.cmeAnalyses||[]); const a=as.find(v=>v.isMostAccurate)||as[0]; if(!a)return null;
+      const eta=((a.enlilList||[])[0]||{}).estimatedShockArrivalTime||null;
+      return { lon:a.longitude, halfAngle:a.halfAngle||30, speed:a.speed||400,
+        start:Date.parse(c.startTime), halo:a.longitude==null||(a.halfAngle||0)>=60, eta };
+    }).filter(Boolean);
+    if(evs.length)buildCmePlumes(evs);
+    // flares → rim sparks + the freshest one for the status line
+    solFlares=(flrs||[]).slice(-10).map(f=>({lon:parseSrcLon(f.sourceLocation),cls:f.classType||"C",t:Date.parse(f.peakTime||f.beginTime)}));
+    // status line, SENTRY-style: latest flare · next CME arrival · max Kp (24 h)
+    const bits=[];
+    const lastF=solFlares[solFlares.length-1];
+    if(lastF&&isFinite(lastF.t))bits.push(`${lastF.cls} FLARE ${fmtAgo(Date.now()-lastF.t)} AGO`);
+    const nextEta=evs.map(e=>Date.parse(e.eta)).filter(t=>t>Date.now()).sort((a,b)=>a-b)[0];
+    if(nextEta)bits.push(`CME ETA ${fmtAgo(nextEta-Date.now())}`);
+    let kp=0; (gsts||[]).forEach(g=>(g.allKpIndex||[]).forEach(k=>{ if(Date.parse(k.observedTime)>Date.now()-864e5)kp=Math.max(kp,k.kpIndex); }));
+    if(kp){ const g=Math.max(0,Math.round(kp)-4); bits.push(`Kp ${Math.round(kp)}${g>0?` (G${Math.min(g,5)})`:""}`); }
+    setSolarStatus(bits.length?"⊙ "+bits.join(" · "):"⊙ QUIET SUN · NO RECENT EVENTS");
+  }catch(e){
+    console.warn("DONKI fetch failed — modeled CME fallback.",e);
+    setSolarStatus("⊙ DONKI OFFLINE · MODELED EVENTS");
   }
 }
 
@@ -1089,6 +1163,7 @@ const mobileStart = matchMedia("(max-width:760px)").matches;
 setView(mobileStart ? "galaxy" : "craft");
 if(!mobileStart) startCycle();
 loadDSN(); setInterval(loadDSN, 30000);   // refresh live DSN every 30s
+loadDONKI(); setInterval(loadDONKI, 20*60*1000);   // real CMEs/flares/Kp, refreshed 20-min
 
 const boot=$("#boot");
 const bootLines=[

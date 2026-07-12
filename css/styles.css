@@ -223,6 +223,8 @@ body:not(.retro) #rail a:hover,#rail a.crt-hover{color:#ff8f8f;filter:brightness
 .mtg.on[data-tg=cme]{color:var(--orange);border-color:var(--orange);box-shadow:0 0 10px rgba(255,106,31,.25)}
 .mtg.on[data-tg=flr]{color:var(--red);border-color:var(--red);box-shadow:0 0 10px rgba(255,71,71,.25)}
 .mtg.on[data-tg=sol]{color:var(--hi);border-color:var(--hi);box-shadow:0 0 10px rgba(71,255,169,.25)}
+.map-status{max-width:300px;font-family:var(--tt);font-size:10.5px;letter-spacing:.08em;
+  color:var(--orange);text-shadow:0 0 6px rgba(255,106,31,.4);line-height:1.5}
 .map-approach{min-width:236px;border:1px solid var(--line-soft);background:rgba(5,4,10,.55);
   padding:12px 14px;font-family:var(--tt)}
 .ma-h{color:var(--orange);font-size:11px;letter-spacing:.14em}
