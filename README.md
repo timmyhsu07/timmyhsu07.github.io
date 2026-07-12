@@ -23,9 +23,12 @@ data** throughout. Vanilla HTML/CSS/JS + Three.js (vendored) — **no build step
     launch* — where the ejection actually is right now. Flares twinkle on the sun's limb
     at their source longitude, sized by GOES class. A status line shows the latest
     flare, the next ENLIL-simulated CME Earth-arrival, and the 24 h max Kp.
-  - **ORB / CME / FLR / SOL** buttons toggle the layers (planet orbits — Earth's in
-    blue — solar ejections, flares, the sun); a SENTRY-style **NEAREST APPROACH** box
-    shows the closest upcoming miss (LD/KM, V-REL, live ETA).
+  - **The NEO orbit web** — every plotted near-Earth object gets a thin tilted
+    Keplerian ellipse (red = potentially hazardous) wrapped in a diffuse red/gold
+    debris cloud; Earth's orbit is highlighted blue; the week's closest passes
+    cluster as diamonds at Earth.
+  - **ORB / CME / FLR / SOL** buttons toggle the layers; a SENTRY-style
+    **NEAREST APPROACH** box shows the closest upcoming miss (LD/KM, V-REL, live ETA).
 - **GEOCENTRIC EARTH MAP** — click **SOURCE / OBJECT FEED**. Every close approach from
   the live **NeoWs** feed becomes a trajectory streaking past Earth at its actual miss
   distance, with diamonds at closest approach (red = PHA, labeled).

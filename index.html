@@ -16,6 +16,9 @@
   if(/[?&](recruiter|r)(=|&|$)/.test(q)) location.replace("recruiter.html"+location.hash);})();
 </script>
 <title>Timothy Hsu // ML · Quant · Software</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="favicon-180.png">
 <meta name="description" content="Timothy Hsu — a SENTRY-style retrofuturist portfolio with live NASA data and switchable satellite / orbital / galaxy views.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,7 +64,7 @@
     <section class="panel viewsw" id="orbital-mini" data-view="orbital" tabindex="0" role="button" aria-label="Heliocentric solar map view">
       <span class="plabel">HELIOCENTRIC SOLAR MAP <i class="caret">▾</i></span>
       <canvas class="pviz" data-viz="orbital"></canvas>
-      <div class="pv-cap"><span>HELIOCENTRIC · <b id="orb-n">—</b> CME</span><span class="open">VIEW ▸</span></div>
+      <div class="pv-cap"><span>HELIOCENTRIC · <b id="orb-n">—</b> NEO</span><span class="open">VIEW ▸</span></div>
     </section>
 
     <section class="panel viewsw" id="galaxy-mini" data-view="galaxy" tabindex="0" role="button" aria-label="Galaxy view">
@@ -220,6 +223,6 @@
 <script src="js/config.js?v=16"></script>
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
-<script src="js/app.js?v=21"></script>
+<script src="js/app.js?v=22"></script>
 </body>
 </html>
