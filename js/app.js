@@ -46,7 +46,7 @@ initStars(); addEventListener("resize",initStars);
 
 /* =====================  2D VIEWS: orbital bodies + galaxy  ===================== */
 // Mini panels stay animated; you can switch the full-screen center to either.
-let neoObjs=[], neoOrbits=[], nearEarthMarks=[];
+let neoObjs=[];
 // Real, catalogued galaxies (name · distance in light-years · Hubble morphology).
 // The view cycles through them like the fleet; each renders to its actual shape.
 const GALAXIES=[
@@ -80,44 +80,6 @@ const PLANETS=[
   {r:0.75,c:"#a8ece4",s:0.24,ph:4.1,n:"URANUS", sz:3.5},
   {r:0.86,c:"#5f8fff",s:0.18,ph:0.7,n:"NEPTUNE",sz:3.5},
   {r:0.95,c:"#c9b8a8",s:0.13,ph:3.2,n:"PLUTO",  sz:1.5}];
-/* Each plotted NEO gets a 3D Keplerian orbit (semi-major axis, eccentricity,
-   inclination, node, periapsis — seeded stably from its designation) rendered as a
-   tilted ellipse threading the map, with dust particles scattered along it. */
-const hashStr=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;};
-function rebuildNeoScatter(){
-  neoOrbits=neoObjs.slice(0,22).map(o=>{
-    const r1=hashStr(o.des+"a"),r2=hashStr(o.des+"e"),r3=hashStr(o.des+"i"),
-          r4=hashStr(o.des+"O"),r5=hashStr(o.des+"w");
-    const a=0.9+r1*2.6, e=0.15+r2*0.55, inc=(r3-0.5)*1.1, Om=r4*6.2832, w=r5*6.2832;
-    const cO=Math.cos(Om),sO=Math.sin(Om),cI=Math.cos(inc),sI=Math.sin(inc),cW=Math.cos(w),sW=Math.sin(w);
-    const at=v=>{                                             // true anomaly → mapped 3D point
-      const rAU=a*(1-e*e)/(1+e*Math.cos(v));
-      const xa=rAU*(Math.cos(v)*cW-Math.sin(v)*sW), za=rAU*(Math.cos(v)*sW+Math.sin(v)*cW);
-      const y=za*sI, z2=za*cI;
-      const X=xa*cO+z2*sO, Z=-xa*sO+z2*cO;
-      const len=Math.hypot(X,y,Z)||1e-6, f=mapAU(len)/len;
-      return {X:X*f, Y:y*f, Z:Z*f};
-    };
-    const pts=[]; for(let k=0;k<=64;k++)pts.push(at(k/64*6.2832));
-    // a broad debris cloud clumped along the orbit — the dense square-particle field
-    // that fills SENTRY's map (wide jitter, thicker in-plane than out)
-    const dust=[], clumps=3+Math.floor(hashStr(o.des+"c")*3);
-    const nDust=o.haz?230:110;              // hazardous orbits shed the heavy red field
-    for(let k=0;k<nDust;k++){
-      const cl=Math.floor(hashStr(o.des+"cl"+k)*clumps);
-      const v=hashStr(o.des+"cc"+cl)*6.2832+(hashStr(o.des+"d"+k)-0.5)*2.4;
-      const p=at(v), j=(0.05+0.07*hashStr(o.des+"js"+k))*(o.haz?1.9:1);
-      dust.push({X:p.X+(hashStr(o.des+"x"+k)-0.5)*j, Y:p.Y+(hashStr(o.des+"y"+k)-0.5)*j*0.5,
-        Z:p.Z+(hashStr(o.des+"z"+k)-0.5)*j, tw:hashStr(o.des+"t"+k)*6.2832,
-        a:0.35+0.65*hashStr(o.des+"al"+k)});
-    }
-    return {haz:!!o.haz, pts, dust};
-  });
-  // close-approach diamonds clustered around Earth, like SENTRY's gold markers
-  nearEarthMarks=neoObjs.slice().sort((a,b)=>a.ld-b.ld).slice(0,7).map(o=>({
-    dx:(hashStr(o.des+"ex")-0.5)*0.10, dz:(hashStr(o.des+"ez")-0.5)*0.10,
-    dy:(hashStr(o.des+"ey")-0.5)*0.03, haz:!!o.haz}));
-}
 /* SENTRY-style HELIOCENTRIC SOLAR MAP — CME plumes and solar flares are REAL events
    from NASA DONKI (Space Weather Database). Each CME is modeled physically: its plume
    points along the event's heliographic longitude, spans its measured half-angle cone,
@@ -153,6 +115,7 @@ function buildCmePlumes(evs){
       sz:Math.random()<0.1?1.8:1.2, br:0.5+Math.random()*0.5 }); }
     return {...ev, parts};
   });
+  const orb=$("#orb-n"); if(orb)orb.textContent=String(cmePlumes.length).padStart(2,"0");
 }
 buildCmePlumes();   // instant fallback; replaced when DONKI lands
 function drawOrbital(x,w,h,t,big){
@@ -164,24 +127,14 @@ function drawOrbital(x,w,h,t,big){
   const prj=(X,Y,Z)=>{ const x2=X*cS+Z*sS, z2=-X*sS+Z*cS;
     return {x:cx+x2*R, y:cy+z2*R*tilt-Y*R*vf}; };
   x.lineWidth=1;
-  // ORB · orbit lines — every plotted NEO's tilted Keplerian ellipse (red = PHA),
-  // Earth's orbit in blue, the other planets' rings in faint amber
+  // ORB · orbit lines — the planets' rings in faint amber, Earth's orbit in blue
   if(MAP_LAYERS.orb){
-    neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
-      x.strokeStyle=o.haz?"rgba(255,64,47,.26)":"rgba(240,179,42,.15)";
-      x.beginPath(); o.pts.forEach((p,i)=>{const s=prj(p.X,p.Y,p.Z); i?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);}); x.stroke(); });
     PLANETS.forEach(p=>{ const earth=p.n==="EARTH";
       x.strokeStyle=earth?"rgba(95,155,255,.55)":"rgba(122,90,20,.30)"; x.lineWidth=earth?1.3:1;
       x.beginPath(); for(let k=0;k<=64;k++){ const a=k/64*6.2832, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
         k?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);} x.stroke(); });
     x.lineWidth=1;
   }
-  // debris field — dense red/gold square clouds clumped along every NEO orbit
-  neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
-    o.dust.forEach((d,k)=>{ if(!big&&k%3)return;
-      const s=prj(d.X,d.Y,d.Z), tw=0.6+0.4*Math.sin(t*1.4+d.tw);
-      x.fillStyle=o.haz?`rgba(255,70,50,${0.7*d.a*tw})`:`rgba(240,179,42,${0.55*d.a*tw})`;
-      x.fillRect(s.x,s.y,big?2:1.4,big?2:1.4); }); });
   // CME · real DONKI ejections — 3D cones aimed along each event's measured
   // longitude AND latitude, front at speed × elapsed time
   if(MAP_LAYERS.cme){ const now=Date.now();
@@ -235,12 +188,6 @@ function drawOrbital(x,w,h,t,big){
       x.fillStyle="rgba(207,211,220,.9)"; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
       if(m.nm==="MOON"){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
     if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
-  // close-approach diamonds hugging Earth (this week's nearest passes)
-  if(big){ const pe=PLANETS[2], aE=t*pe.s+pe.ph;
-    const eX=Math.cos(aE)*pe.r, eZ=Math.sin(aE)*pe.r;
-    nearEarthMarks.forEach(m=>{ const s=prj(eX+m.dx,m.dy,eZ+m.dz);
-      x.fillStyle=m.haz?"#ff5a3c":"#f0b32a";
-      x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-2.6,-2.6,5.2,5.2); x.restore(); }); }
   // spacecraft — green diamonds, like SENTRY's ◆ JUNO markers
   if(big){ [["JUNO",0.47],["PSP",0.13],["VGR-1",1.02]].forEach(([nm,rf],k)=>{
     const a=t*0.22+k*2.3, s=prj(Math.cos(a)*rf,0,Math.sin(a)*rf);
@@ -1074,11 +1021,10 @@ function updateNearestApproach(objs){
 }
 function renderFeed(data){
   const {objs,tracked,pha,src}=data;
-  neoObjs=objs; rebuildNeoScatter();                       // feed the orbital-bodies view
+  neoObjs=objs;                                            // feeds the geocentric earth map
   updateNearestApproach(objs);                             // SENTRY nearest-approach box
-  const orb=$("#orb-n"); if(orb)orb.textContent=String(objs.length).padStart(2,"0");
   $("#t-total").textContent=String(tracked).padStart(2,"0");
-  $("#t-plotted").textContent=String(Math.min(objs.length,22)).padStart(2,"0");
+  $("#t-plotted").textContent=String(Math.min(objs.length,42)).padStart(2,"0");
   $("#t-sentry").textContent=String(pha).padStart(2,"0");
   $("#feedbox").innerHTML=objs.slice(0,60).map((o,i)=>{
     const dp=o.date.split("-"), date=dp.length>=3?`${dp[2]} ${MON[+dp[1]-1]}`:"—";
