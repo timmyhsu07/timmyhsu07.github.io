@@ -116,7 +116,7 @@ const CONFIG = {
   // ── PROJECT BELTS ──  category colors use the SENTRY key palette.
   belts: [
     { id:"ml",      label:"MACHINE LEARNING", color:"#54ff8a", r:1.55 },
-    { id:"quant",   label:"QUANT / FINANCE",  color:"#ff6a1f", r:1.95 },
+    { id:"quant",   label:"QUANT FINANCE",  color:"#ff6a1f", r:1.95 },
     { id:"systems", label:"SYSTEMS / INFRA",  color:"#39d6c8", r:2.30 },
     { id:"web",     label:"WEB / TOOLS",      color:"#5f7bff", r:2.62 },
     { id:"research",label:"RESEARCH",         color:"#ff3b2f", r:1.75 },
@@ -149,18 +149,8 @@ const CONFIG = {
     { code:"NH",    name:"NEW HORIZONS",   status:"ACTIVE", region:"OUTER SOLAR SYSTEM",         range:"~63 AU",  vrel:"~14 KM/S", signal:"DSN · X-BAND",  launch:"2006-01-19", type:"newhorizons", naif:-98, model:"models/newhorizons.glb" },
     { code:"PSP",   name:"PARKER SOLAR PROBE", status:"ACTIVE", region:"INNER HELIOSPHERE",     range:"~0.4 AU", vrel:"~110 KM/S",signal:"DSN · Ka-BAND", launch:"2018-08-12", type:"parker",      naif:-96, model:"models/parker.glb" },
     { code:"JUNO",  name:"JUNO",           status:"ACTIVE", region:"JOVIAN SYSTEM",             range:"~5.2 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND",  launch:"2011-08-05", type:"juno",        naif:-61, model:"models/juno.glb" },
-    { code:"PSY",   name:"PSYCHE",         status:"ACTIVE", region:"MAIN BELT TRANSFER",        range:"~2.5 AU", vrel:"~9 KM/S",  signal:"DSN · X/Ka",    launch:"2023-10-13", type:"psyche",      naif:-255 },
-    { code:"JWST",  name:"JAMES WEBB",     status:"ACTIVE", region:"SUN–EARTH L2",              range:"~0.01 AU",vrel:"~0.3 KM/S",signal:"DSN · Ka-BAND", launch:"2021-12-25", type:"jwst",        naif:-170 },
-    { code:"LUCY",  name:"LUCY",           status:"ACTIVE", region:"JUPITER TROJANS TRANSIT",   range:"~3.4 AU", vrel:"~13 KM/S", signal:"DSN · X/Ka",    launch:"2021-10-16", type:"orbiter",     naif:-49 },
-    { code:"ORX",   name:"OSIRIS-APEX",    status:"ACTIVE", region:"NEO APOPHIS CRUISE",        range:"~1.1 AU", vrel:"~7 KM/S",  signal:"DSN · X-BAND",  launch:"2016-09-08", type:"orbiter",     naif:-64 },
-    { code:"CLIP",  name:"EUROPA CLIPPER", status:"ACTIVE", region:"JUPITER TRANSIT",           range:"~2.9 AU", vrel:"~24 KM/S", signal:"DSN · X/Ka",    launch:"2024-10-14", type:"orbiter",     naif:-159 },
-    { code:"BEPI",  name:"BEPICOLOMBO",    status:"ACTIVE", region:"MERCURY CRUISE",            range:"~0.9 AU", vrel:"~30 KM/S", signal:"DSN/ESA · X/Ka",launch:"2018-10-20", type:"orbiter",     naif:-121 },
-    { code:"SOLO",  name:"SOLAR ORBITER",  status:"ACTIVE", region:"INNER HELIOSPHERE",         range:"~0.6 AU", vrel:"~25 KM/S", signal:"DSN/ESA · X",   launch:"2020-02-10", type:"orbiter",     naif:-144 },
     { code:"MRO",   name:"MARS RECON ORBITER", status:"ACTIVE", region:"MARS ORBIT",           range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2005-08-12", type:"orbiter",     naif:-74, model:"models/mro.glb" },
     { code:"ODY",   name:"MARS ODYSSEY",   status:"ACTIVE", region:"MARS ORBIT",               range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2001-04-07", type:"orbiter",     naif:-53, model:"models/odyssey.glb" },
-    { code:"MVN",   name:"MAVEN",          status:"ACTIVE", region:"MARS ORBIT",               range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2013-11-18", type:"orbiter",     naif:-202 },
-    { code:"MSL",   name:"CURIOSITY",      status:"ACTIVE", region:"GALE CRATER · MARS",        range:"~1.6 AU", vrel:"—",        signal:"UHF RELAY · DSN",launch:"2011-11-26", type:"rover",       naif:-76 },
-    { code:"M20",   name:"PERSEVERANCE",   status:"ACTIVE", region:"JEZERO CRATER · MARS",      range:"~1.6 AU", vrel:"—",        signal:"UHF RELAY · DSN",launch:"2020-07-30", type:"rover",       naif:-168 },
     { code:"STA",   name:"STEREO-A",       status:"ACTIVE", region:"HELIOCENTRIC · 1 AU",       range:"~1.0 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND",  launch:"2006-10-26", type:"orbiter",     naif:-234, model:"models/stereo.glb" },
     // ── ENDED ──
     { code:"CAS",   name:"CASSINI",        status:"ENDED",  region:"SATURN SYSTEM",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1997-10-15", type:"cassini", naif:-82, model:"models/cassini.glb" },

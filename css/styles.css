@@ -177,9 +177,13 @@ body:not(.retro) .hud-btn:hover,.hud-btn:focus-visible,.hud-btn.crt-hover{outlin
  * ============================================================= */
 #id{position:fixed;top:20px;right:28px;z-index:22;text-align:right;max-width:56vw}
 #title{display:inline-block;text-align:center}
+/* the big serif name is filled with horizontal CRT raster stripes (background-clip:text),
+   with the phosphor glow re-applied via drop-shadow so it wraps the striped letterforms */
 #k-name{display:block;font-family:var(--serif);font-weight:700;font-style:italic;
-  font-size:clamp(36px,5.7vw,80px);line-height:.9;letter-spacing:.01em;text-transform:uppercase;color:var(--hi);
-  text-shadow:0 0 6px rgba(71,255,169,.65),0 0 24px rgba(71,255,169,.22)}
+  font-size:clamp(36px,5.7vw,80px);line-height:.9;letter-spacing:.01em;text-transform:uppercase;
+  background:repeating-linear-gradient(180deg,#9fffd4 0 2px,rgba(45,175,116,.9) 2px 3px,#7df5bd 3px 4px);
+  -webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 6px rgba(71,255,169,.5)) drop-shadow(0 0 22px rgba(71,255,169,.22))}
 #k-mission{display:flex;justify-content:space-between;align-items:baseline;gap:14px;width:100%;margin-top:7px;
   font-family:var(--mono);font-weight:500;font-size:clamp(9px,1.05vw,14px);letter-spacing:.12em;
   text-transform:uppercase;color:var(--text)}
@@ -194,15 +198,40 @@ body:not(.retro) #rail a:hover,#rail a.crt-hover{color:#ff8f8f;filter:brightness
 #id .counts{margin-top:7px;font-family:var(--tt);font-size:12px;color:var(--text-dim)}
 #id .counts b{color:var(--text);font-weight:400}
 #id .stamp{margin-top:4px;font-family:var(--tt);font-size:12px;color:var(--text)}
-#id .srcnote{margin-top:3px;font-family:var(--tt);font-size:10.5px;letter-spacing:.08em;color:var(--hi);opacity:.75}
 #id .credit{margin-top:4px;font-size:11.5px;letter-spacing:.06em;color:var(--text-dim)}
 #id .credit b{color:var(--text)} #id .credit b#k-handle{color:var(--hi)}
 #id .hd-ctl{margin-top:10px;display:flex;justify-content:flex-end}
 
-/* --- DSN live line + center view label --- */
-#id .dsnline{margin-top:4px;font-family:var(--tt);font-size:11px;letter-spacing:.05em;color:var(--hi)}
-#id .dsnline b{color:var(--text)} #id .dsnline.off{color:var(--text-dim)}
+/* --- DSN live status — docked in the LEFT column beside the craft picker --- */
+#dsn-side{flex:0 0 auto;border:1px solid var(--line-soft);background:rgba(5,4,10,.42);padding:8px 10px}
+#dsn-side .dsnline{font-family:var(--tt);font-size:11px;letter-spacing:.05em;color:var(--hi)}
+#dsn-side .dsnline b{color:var(--text)} #dsn-side .dsnline.off{color:var(--text-dim)}
+#dsn-side .srcnote{margin-top:3px;font-family:var(--tt);font-size:10px;letter-spacing:.08em;color:var(--hi);opacity:.7}
 .view-label{position:fixed;top:20px;left:340px;z-index:22}
+
+/* --- SENTRY map chrome: title chip · ORB/CME/FLR/SOL toggles · nearest-approach --- */
+#map-ui{position:fixed;top:20px;left:306px;z-index:21;display:flex;flex-direction:column;
+  gap:10px;align-items:flex-start;pointer-events:none}
+#map-ui[hidden]{display:none}
+#map-ui .map-chip{font-family:var(--tt);font-size:12px;letter-spacing:.18em;color:var(--orange);
+  border:1px solid var(--orange);border-radius:6px;padding:5px 12px;background:rgba(20,8,2,.5);
+  text-shadow:0 0 8px rgba(255,106,31,.5)}
+#map-ui .map-toggles{display:flex;gap:8px;pointer-events:auto}
+.mtg{font-family:var(--tt);font-size:11px;letter-spacing:.12em;padding:6px 12px;border-radius:6px;
+  border:1px solid var(--line-soft);color:var(--text-dim);background:rgba(10,7,19,.55);cursor:pointer;transition:.15s}
+.mtg.on[data-tg=orb]{color:var(--text);border-color:var(--text);box-shadow:0 0 10px rgba(240,179,42,.22)}
+.mtg.on[data-tg=cme]{color:var(--orange);border-color:var(--orange);box-shadow:0 0 10px rgba(255,106,31,.25)}
+.mtg.on[data-tg=flr]{color:var(--red);border-color:var(--red);box-shadow:0 0 10px rgba(255,71,71,.25)}
+.mtg.on[data-tg=sol]{color:var(--hi);border-color:var(--hi);box-shadow:0 0 10px rgba(71,255,169,.25)}
+.map-approach{min-width:236px;border:1px solid var(--line-soft);background:rgba(5,4,10,.55);
+  padding:12px 14px;font-family:var(--tt)}
+.ma-h{color:var(--orange);font-size:11px;letter-spacing:.14em}
+.ma-des{color:var(--hi);margin:4px 0 8px;font-size:12px;letter-spacing:.06em}
+.ma-row{display:flex;justify-content:space-between;gap:18px;font-size:12px;color:var(--text-dim);margin-top:4px}
+.ma-row b{font-weight:400}
+.ma-row b.red{color:var(--red)} .ma-row b.grn{color:var(--hi)}
+.ma-date{margin-top:8px;color:var(--text-dim);font-size:10.5px}
+.map-hint{font-family:var(--tt);font-size:10px;letter-spacing:.1em;color:var(--text-dim)}
 
 /* --- center viewport (2D orbital / galaxy views, over the WebGL craft) --- */
 #viewport{z-index:2;display:none}
@@ -493,6 +522,8 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
   #title{font-size:clamp(24px,7vw,40px)}
   #id .hd-ctl{justify-content:flex-start}
   #sidecol,.view-label{display:none}
+  #map-ui{left:14px;top:auto;bottom:150px;gap:8px}
+  #map-ui .map-approach{min-width:200px;padding:9px 11px}
   #nav{left:14px;right:14px;bottom:58px;flex-wrap:wrap;gap:8px}
   .navcard{flex:1 1 42%;gap:10px;padding:12px 10px} .navcard .nav-ic{width:32px;height:24px} .navcard .nc-label{font-size:13px}
   #mtime{gap:10px;padding:0 14px} #mtime .mt-label{display:none}

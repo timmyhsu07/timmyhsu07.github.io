@@ -30,7 +30,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:16
 /* clean, subtle vignette only — no scanlines (kept professional) */
 body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:radial-gradient(ellipse at 50% 34%,transparent 46%,rgba(0,0,0,.55) 88%,rgba(0,0,0,.9) 100%)}
-#app{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:0 28px}
+#app{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:34px 28px 0}  /* clears the pinned top-left controls */
 a{color:var(--cyan);text-decoration:none} a:hover{color:#dffbf7;text-shadow:0 0 8px rgba(57,214,200,.5)}
 
 /* top bar */
@@ -44,7 +44,7 @@ header.hero{padding:24px 0 30px;border-bottom:1px solid var(--line-soft)}
 .hero h1{font-family:var(--serif);font-style:italic;font-weight:700;font-size:clamp(44px,8vw,86px);line-height:.92;
   text-transform:uppercase;color:var(--hi);letter-spacing:.01em;text-shadow:0 0 8px rgba(71,255,169,.45)}
 .hero .focus{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:12px;
-  font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:var(--text)}
+  font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#2e7d54}   /* darker forest green */
 .hero .role{margin-top:12px;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--text);opacity:.9;max-width:70ch}
 .hero .rail{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
 .hero .rail a{font-family:var(--tt);font-size:12px;letter-spacing:.14em;color:var(--text);
@@ -86,12 +86,10 @@ footer{padding:28px 0 0;font-family:var(--tt);font-size:12px;letter-spacing:.12e
 footer a{color:var(--hi)}
 @media(max-width:560px){ .facts,.contact-grid{grid-template-columns:1fr} .entry .e-meta{white-space:normal} }
 
-/* ── side control rail: light-mode toggle + back to retrofuturist style ── */
-#side-ctrl{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:30;
-  display:flex;flex-direction:column;gap:12px}
-#side-ctrl .sbtn{writing-mode:vertical-rl;transform:rotate(180deg);
-  font-family:var(--tt);font-size:12px;letter-spacing:.24em;text-transform:uppercase;
-  padding:16px 9px;border:1px solid var(--line);color:var(--text);background:var(--panel);
+/* ── control rail: horizontal, pinned top-left, rides along as the page scrolls ── */
+#side-ctrl{position:fixed;left:14px;top:14px;z-index:30;display:flex;flex-direction:row;gap:10px}
+#side-ctrl .sbtn{font-family:var(--tt);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  padding:9px 14px;border:1px solid var(--line);color:var(--text);background:var(--panel);
   cursor:pointer;text-decoration:none;transition:.15s;line-height:1}
 #side-ctrl .sbtn:hover{border-color:var(--hi);color:var(--hi);box-shadow:0 0 12px rgba(71,255,169,.3)}
 
@@ -106,11 +104,11 @@ body.light .hero h1,body.light .lead,body.light .entry .e-name{text-shadow:none}
 body.light a:hover{text-shadow:none;color:#0a1c50}
 body.light .hero .rail a:hover,body.light #side-ctrl .sbtn:hover{box-shadow:none;border-color:var(--text);color:var(--text)}
 body.light .sub{color:#b58900}                                 /* Core Stack title = yellow */
+body.light .hero .focus{color:#1b4d33}                          /* darker forest green (light) */
 body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chips = navy */
 
 @media(max-width:1040px){
-  #side-ctrl{left:auto;right:10px;top:10px;transform:none;flex-direction:row}
-  #side-ctrl .sbtn{writing-mode:horizontal-tb;transform:none;padding:8px 12px;letter-spacing:.14em}
+  #side-ctrl .sbtn{padding:8px 12px;letter-spacing:.14em}
 }
 
 </style>
@@ -121,8 +119,8 @@ body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chi
   <a class="sbtn" href="index.html">◂ Retrofuturist Style</a>
 </div>
 <div id="app"></div>
-<script src="js/config.js?v=14"></script>
-<script src="js/recruiter.js?v=13"></script>
+<script src="js/config.js?v=15"></script>
+<script src="js/recruiter.js?v=15"></script>
 <script>
 (function(){
   var b=document.body, t=document.getElementById('lightToggle'), K='recruiterLight';

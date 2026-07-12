@@ -85,36 +85,101 @@ function rebuildNeoScatter(){
   neoScatter=neoObjs.slice(0,120).map((o,i)=>({a:(i*2.399+(o.ld||10)*0.13)%(Math.PI*2),
     rr:0.44+(Math.min(o.ld||10,30)/30-0.5)*0.18, red:o.haz||(o.ld||99)<3}));
 }
+/* SENTRY-style HELIOCENTRIC SOLAR MAP — a dense CME particle plume (gold + red lobes)
+   pouring out of a blazing sun, pale-cyan planets with TT labels, and green spacecraft
+   diamonds. ORB/CME/FLR/SOL buttons toggle the layers; drag orbits, scroll zooms. */
+const MAP_LAYERS={orb:false,cme:true,flr:true,sol:true};
+let vpZoom=1;
+const cmeParticles=[]; for(let i=0;i<2600;i++){ const red=i%5<2;   // 2 red : 3 gold
+  cmeParticles.push({ a:(red?Math.PI+0.55:-0.45)+(Math.random()-0.5)*2.4,
+    r:0.04+Math.pow(Math.random(),1.7)*1.05, s:0.004+Math.random()*0.012,
+    z:(Math.random()-0.5)*0.5, sz:Math.random()<0.12?2.4:1.6, red,
+    br:0.35+Math.random()*0.65 }); }
+const flares=[]; for(let i=0;i<14;i++)flares.push({a:Math.random()*6.2832,r:0.10+Math.random()*0.22,tw:Math.random()*6.2832});
 function drawOrbital(x,w,h,t,big){
-  const cx=w*0.5, cy=h*0.54, R=Math.min(w,h)*(big?0.44:0.52);
-  // drag: horizontal spins the whole system, vertical tilts the ecliptic plane
-  const tilt=Math.max(0.12,Math.min(0.92, 0.42 + (big?vpTilt:0))), spin=(big?vpSpin:0);
+  const cx=w*0.5, cy=h*0.52, zm=big?vpZoom:1, R=Math.min(w,h)*(big?0.46:0.52)*zm;
+  const tilt=Math.max(0.12,Math.min(0.92, 0.40 + (big?vpTilt:0))), spin=(big?vpSpin:0);
   x.lineWidth=1;
-  PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt; x.strokeStyle="rgba(122,90,20,.45)"; x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,7); x.stroke();});
-  beltParticles.forEach((b,i)=>{ if(!big&&i%3)return; const a=b.a+t*b.s+spin,rx=R*b.r,ry=rx*tilt,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    x.fillStyle=b.red?"rgba(255,59,47,.8)":"rgba(240,179,42,.55)"; x.fillRect(px,py,big?1.6:1.2,big?1.6:1.2); });
-  const eR=R*0.44;
-  neoScatter.forEach((o,i)=>{ if(!big&&i%2)return; const a=o.a+t*0.25+spin,rx=eR*(o.rr/0.44),ry=rx*tilt,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    x.fillStyle=o.red?"#ff3b2f":"#f0b32a"; x.beginPath(); x.arc(px,py,big?2:1.4,0,7); x.fill(); });
-  x.fillStyle="#ffd27a"; x.shadowColor="#ff9d3a"; x.shadowBlur=big?42:16; x.beginPath(); x.arc(cx,cy,big?15:6,0,7); x.fill(); x.shadowBlur=0;
+  // ORB · faint planet orbit rings
+  if(MAP_LAYERS.orb||!big){ PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt;
+    x.strokeStyle="rgba(122,90,20,.40)"; x.beginPath(); x.ellipse(cx,cy,rx,ry,0,0,7); x.stroke();}); }
+  // CME · the particle plume (slow outward drift, gold + red lobes, brighter near the sun)
+  if(MAP_LAYERS.cme){ cmeParticles.forEach((p,i)=>{ if(!big&&i%4)return;
+    const rr=(p.r+t*p.s*0.18)%1.12, a=p.a+spin+rr*0.35;
+    const px=cx+Math.cos(a)*R*rr, py=cy+Math.sin(a)*R*rr*tilt+p.z*R*0.10;
+    const core=rr<0.15, al=(core?0.95:p.br*(1-rr*0.65))*(big?1:0.8), s=p.sz*(big?1:0.75);
+    x.fillStyle=core?`rgba(255,246,214,${al})`:(p.red?`rgba(255,76,52,${al})`:`rgba(244,196,98,${al})`);
+    x.fillRect(px,py,s,s); }); }
+  // FLR · pulsing flare sparks close to the sun
+  if(MAP_LAYERS.flr&&big){ flares.forEach(f=>{ const a=f.a+spin, tw=0.5+0.5*Math.sin(t*3+f.tw);
+    const px=cx+Math.cos(a)*R*f.r, py=cy+Math.sin(a)*R*f.r*tilt;
+    x.fillStyle=`rgba(255,214,122,${0.35+0.6*tw})`;
+    x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-2,-2,4,4); x.restore(); }); }
+  // SOL · the blazing core
+  if(MAP_LAYERS.sol){ const g=x.createRadialGradient(cx,cy,0,cx,cy,R*0.30);
+    g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
+    g.addColorStop(.5,"rgba(255,160,70,.16)"); g.addColorStop(1,"rgba(255,120,50,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,R*0.30,0,7); x.fill(); }
+  x.fillStyle="#fff6de"; x.shadowColor="#ffd27a"; x.shadowBlur=big?30:12;
+  x.beginPath(); x.arc(cx,cy,(big?9:4)*Math.max(zm,0.8),0,7); x.fill(); x.shadowBlur=0;
+  if(big&&MAP_LAYERS.sol){ x.fillStyle="rgba(71,255,169,.8)"; x.font="10px 'Share Tech Mono',monospace"; x.fillText("SOL",cx+12,cy+3); }
+  // planets — pale-cyan discs with soft glow + TT labels (SENTRY palette; Earth stays blue)
   PLANETS.forEach(p=>{const rx=R*p.r,ry=rx*tilt,a=t*p.s+p.ph+spin,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    const psz=(p.sz||2.4)*(big?1:0.5);
-    // Saturn's rings (tilted concentric ellipses around the planet)
+    const psz=(p.sz||2.4)*(big?1.6:0.7)*Math.min(zm,1.6);
+    const col=p.n==="EARTH"?"#5f9bff":"#bfe9f2";
     if(big&&p.rings){ x.save(); x.translate(px,py); x.rotate(-0.5);
-      x.strokeStyle="rgba(232,213,154,.75)"; x.lineWidth=1.3;
-      for(const rr of [1.7,2.2,2.7]){ x.beginPath(); x.ellipse(0,0,psz*rr,psz*rr*0.33,0,0,7); x.stroke(); } x.restore(); }
-    x.fillStyle=p.c; x.shadowColor=p.c; x.shadowBlur=big?10:5; x.beginPath(); x.arc(px,py,psz,0,7); x.fill(); x.shadowBlur=0;
-    // moons (Earth's Moon + Jupiter's Galileans)
+      x.strokeStyle="rgba(191,233,242,.5)"; x.lineWidth=1.1;
+      for(const rr of [1.6,2.0]){ x.beginPath(); x.ellipse(0,0,psz*rr,psz*rr*0.33,0,0,7); x.stroke(); } x.restore(); }
+    x.fillStyle=col; x.shadowColor=col; x.shadowBlur=big?14:6;
+    x.beginPath(); x.arc(px,py,psz,0,7); x.fill(); x.shadowBlur=0;
     if(big&&p.moons)p.moons.forEach((m,mi)=>{ const ma=t*m.s+mi*1.7+spin, mrr=R*m.mr;
-      x.strokeStyle="rgba(150,162,188,.28)"; x.lineWidth=0.6; x.beginPath(); x.ellipse(px,py,mrr,mrr*tilt,0,0,7); x.stroke();
       const mx=px+Math.cos(ma)*mrr, my=py+Math.sin(ma)*mrr*tilt;
-      x.fillStyle=m.c; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
-      if(m.nm&&p.n==="JUPITER"){ x.fillStyle="rgba(180,195,220,.65)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
-    if(big){x.fillStyle="rgba(200,220,255,.9)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+4,py+3);}});
-  if(big){ [["JUNO",0.95,"#54ff8a"],["PSY",0.70,"#39d6c8"],["PSP",0.12,"#ff6a1f"]].forEach(([nm,rf,c],k)=>{
-    const a=t*0.3+k*2.1+spin,rx=R*rf,ry=rx*tilt,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
-    x.fillStyle=c; x.beginPath(); x.arc(px,py,3,0,7); x.fill(); x.globalAlpha=.6; x.strokeStyle=c; x.strokeRect(px-4,py-4,8,8); x.globalAlpha=1;
-    x.font="10px 'Share Tech Mono',monospace"; x.fillText(nm,px+7,py-4); }); }
+      x.fillStyle="rgba(207,211,220,.9)"; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
+      if(m.nm==="MOON"){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
+    if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
+  // spacecraft — green diamonds, like SENTRY's ✦ JUNO markers
+  if(big){ [["JUNO",0.47,"#54ff8a"],["PSP",0.13,"#54ff8a"],["VGR-1",1.02,"#54ff8a"]].forEach(([nm,rf,c],k)=>{
+    const a=t*0.22+k*2.3+spin,rx=R*rf,ry=rx*tilt,px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;
+    x.fillStyle=c; x.save(); x.translate(px,py); x.rotate(0.785); x.fillRect(-3.2,-3.2,6.4,6.4); x.restore();
+    x.font="10px 'Share Tech Mono',monospace"; x.fillStyle="rgba(84,255,138,.9)"; x.fillText("◆ "+nm,px+8,py+3); }); }
+}
+/* GEOCENTRIC EARTH MAP — opened from the SOURCE/OBJECT FEED panel. Every tracked NEO
+   from the live NeoWs feed becomes a trajectory line streaking past Earth (red = PHA),
+   with a diamond at its closest-approach point. Drag orbits, scroll zooms. */
+function drawGeo(x,w,h,t){
+  const cx=w*0.5, cy=h*0.52, R=Math.min(w,h)*0.46*vpZoom;
+  const tilt=Math.max(0.14,Math.min(0.9, 0.38+vpTilt)), spin=vpSpin;
+  // faint lunar-orbit ellipse + geostationary ring
+  x.lineWidth=1;
+  x.strokeStyle="rgba(150,162,188,.22)"; x.beginPath(); x.ellipse(cx,cy,R*0.16,R*0.16*tilt,0,0,7); x.stroke();
+  x.strokeStyle="rgba(122,90,20,.25)"; x.beginPath(); x.ellipse(cx,cy,R*0.05,R*0.05*tilt,0,0,7); x.stroke();
+  // NEO trajectories — 3D lines rotated by drag, offset from Earth by miss distance
+  const list=neoObjs.slice(0,42);
+  list.forEach((o,i)=>{
+    const az=i*2.399+spin, incl=Math.sin(i*1.71)*0.55;
+    const dx=Math.cos(az)*Math.cos(incl), dy=Math.sin(incl), dz=Math.sin(az)*Math.cos(incl);
+    // perpendicular offset at the miss distance (LD → screen scale)
+    const oaz=az+1.5708, om=R*(0.07+Math.min(o.ld||10,40)/40*0.85);
+    const ox=Math.cos(oaz)*om, oy=Math.sin(i*2.9)*om*0.25, oz=Math.sin(oaz)*om;
+    const L=R*1.5, P=[-L,L].map(s=>({X:ox+dx*s, Y:oy+dy*s, Z:oz+dz*s}));
+    const prj=p=>({sx:cx+p.X, sy:cy+(p.Y*0.9+p.Z*tilt)});
+    const A=prj(P[0]), B=prj(P[1]);
+    x.strokeStyle=o.haz?"rgba(255,64,47,.55)":"rgba(240,179,42,.30)"; x.lineWidth=o.haz?1.2:1;
+    x.beginPath(); x.moveTo(A.sx,A.sy); x.lineTo(B.sx,B.sy); x.stroke();
+    // closest-approach diamond
+    const C=prj({X:ox,Y:oy,Z:oz});
+    x.fillStyle=o.haz?"#ff402f":"#f0b32a";
+    x.save(); x.translate(C.sx,C.sy); x.rotate(0.785);
+    const dsz=o.haz?4.4:3.2; x.fillRect(-dsz,-dsz,dsz*2,dsz*2); x.restore();
+    if(o.haz||i<2){ x.font="10px 'Share Tech Mono',monospace";
+      x.fillStyle=o.haz?"rgba(255,90,70,.9)":"rgba(240,179,42,.75)"; x.fillText(o.des,C.sx+9,C.sy+3); }
+  });
+  // Earth + Moon at the centre, on top of the traffic
+  const ma=t*0.5+spin, mx=cx+Math.cos(ma)*R*0.16, my=cy+Math.sin(ma)*R*0.16*tilt;
+  x.fillStyle="#cfd3dc"; x.beginPath(); x.arc(mx,my,2.2,0,7); x.fill();
+  x.fillStyle="rgba(190,200,220,.75)"; x.font="9px 'Share Tech Mono',monospace"; x.fillText("MOON",mx+5,my+3);
+  x.fillStyle="#5f9bff"; x.shadowColor="#5f9bff"; x.shadowBlur=16; x.beginPath(); x.arc(cx,cy,5,0,7); x.fill(); x.shadowBlur=0;
+  x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText("EARTH",cx+9,cy+3);
 }
 function drawGalaxy(x,w,h,t,big){
   // ALWAYS the exact centre of the drawing surface (= centre of the screen).
@@ -159,14 +224,14 @@ function fitViewport(){ const dpr=Math.min(devicePixelRatio,2);
   if(vpCv.width!==innerWidth*dpr||vpCv.height!==innerHeight*dpr){vpCv.width=innerWidth*dpr;vpCv.height=innerHeight*dpr;} vpx.setTransform(dpr,0,0,dpr,0,0); return vpx; }
 
 let viewMode="craft";
-const VIEW_LABEL={craft:"SATELLITE MODEL",orbital:"HELIOCENTRIC SOLAR MAP",galaxy:"DEEP-FIELD GALAXY"};
+const VIEW_LABEL={craft:"SATELLITE MODEL",orbital:"HELIOCENTRIC SOLAR MAP",geo:"GEOCENTRIC EARTH MAP",galaxy:"DEEP-FIELD GALAXY"};
 function setView(mode){
   viewMode=mode;
   $$("#sidecol .viewsw").forEach(el=>el.classList.toggle("on",el.dataset.view===mode));
   const vp=$("#viewport"), sc=$("#scene");
   const gl3d = mode==="galaxy" && !!renderer;                       // 3D galaxy needs WebGL
   sc.classList.toggle("hide", !(mode==="craft" || gl3d));           // #scene shows the craft OR the 3D galaxy
-  vp.classList.toggle("show", mode==="orbital" || (mode==="galaxy" && !renderer));  // 2D: orbital + galaxy fallback
+  vp.classList.toggle("show", mode==="orbital" || mode==="geo" || (mode==="galaxy" && !renderer));
   if(renderer){
     craftHolder.visible = (mode==="craft");
     galaxyHolder.visible = gl3d;
@@ -181,9 +246,16 @@ function setView(mode){
   const om=$("#orbital-mini"), gm=$("#galaxy-mini");
   if(om)om.classList.toggle("collapsed",mode!=="orbital");
   if(gm)gm.classList.toggle("collapsed",mode!=="galaxy");
+  // the object feed unfolds while its geocentric map is up
+  const fp=$("#feedpanel"); if(fp)fp.classList.toggle("collapsed",mode!=="geo");
   if(mode==="craft" && !wasFleet && typeof renderFleet==="function") renderFleet();
   if(mode==="galaxy" && !wasGx && typeof renderGalaxies==="function") renderGalaxies();
   const vl=$("#view-label"); if(vl)vl.textContent=VIEW_LABEL[mode]||"";
+  // SENTRY map chrome (title chip · ORB/CME/FLR/SOL · nearest approach) — maps only
+  const mu=$("#map-ui"); if(mu){ mu.hidden=!(mode==="orbital"||mode==="geo");
+    const chip=$("#map-chip"); if(chip)chip.textContent=VIEW_LABEL[mode]||"";
+    const tg=$("#map-toggles"); if(tg)tg.style.display=(mode==="orbital")?"flex":"none";
+    if(mode==="orbital"||mode==="geo")vpZoom=1; }
 }
 $$("#sidecol .viewsw").forEach(el=>{
   const go=()=>setView(el.dataset.view);
@@ -206,11 +278,13 @@ $$("#sidecol .panel>.plabel").forEach(lbl=>{
   vizzes.forEach(o=>{fitViz(o);const{x,w,h}=o;x.clearRect(0,0,w,h);
     if(o.kind==="orbital")drawOrbital(x,w,h,t,false); else drawGalaxy(x,w,h,t,false);});
   if(viewMode!=="craft"){const x=fitViewport(); x.clearRect(0,0,innerWidth,innerHeight);
-    if(viewMode==="orbital")drawOrbital(x,innerWidth,innerHeight,t,true); else drawGalaxy(x,innerWidth,innerHeight,t,true);}
+    if(viewMode==="orbital")drawOrbital(x,innerWidth,innerHeight,t,true);
+    else if(viewMode==="geo")drawGeo(x,innerWidth,innerHeight,t);
+    else drawGalaxy(x,innerWidth,innerHeight,t,true);}
   requestAnimationFrame(hud2d);
 })();
 
-/* drag-to-rotate the full-screen galaxy / orbital views (horizontal = spin, vertical = tilt) */
+/* drag-to-rotate + scroll-to-zoom the full-screen map / galaxy views */
 let vpDrag=false, vpLX=0, vpLY=0;
 vpCv.style.touchAction="none";
 vpCv.addEventListener("pointerdown",e=>{ if(viewMode==="craft")return; vpDrag=true; vpLX=e.clientX; vpLY=e.clientY; vpCv.style.cursor="grabbing"; });
@@ -218,6 +292,11 @@ addEventListener("pointerup",()=>{ vpDrag=false; vpCv.style.cursor=""; });
 addEventListener("pointermove",e=>{ if(!vpDrag)return;
   vpSpin+=(e.clientX-vpLX)*0.006; vpTilt=Math.max(-0.34,Math.min(0.5, vpTilt+(e.clientY-vpLY)*0.004));
   vpLX=e.clientX; vpLY=e.clientY; });
+addEventListener("wheel",e=>{ if(viewMode!=="orbital"&&viewMode!=="geo")return;
+  vpZoom=Math.max(0.5,Math.min(3.6, vpZoom*Math.exp(-e.deltaY*0.0012))); },{passive:true});
+/* ORB / CME / FLR / SOL layer toggles on the heliocentric map */
+$$("#map-toggles .mtg").forEach(b=>b.addEventListener("click",()=>{
+  const k=b.dataset.tg; MAP_LAYERS[k]=!MAP_LAYERS[k]; b.classList.toggle("on",MAP_LAYERS[k]); }));
 
 /* galaxy view cycles through the real galaxies, like the fleet auto-cycle */
 function updateGalaxyLabel(){ const g=GALAXIES[galIdx]; const n=$("#gx-name"), d=$("#gx-dist");
@@ -479,12 +558,22 @@ const cam=new THREE.PerspectiveCamera(46,1,0.1,100);
 const craftHolder=new THREE.Group(); scene.add(craftHolder);
 craftHolder.position.set(0.7,-0.15,0);
 const craftPivot=new THREE.Group(); craftHolder.add(craftPivot);
-// amber orbit rings around the craft
+// faint green ecliptic arcs around the craft (retrofuturist grid lines, not orange rings)
 [[3.4,0.46],[2.9,0.5]].forEach(([rad,tilt],i)=>{
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(rad,0.012,3,96),
-    new THREE.MeshBasicMaterial({color:0xff6a1f,transparent:true,opacity:i?0.32:0.55}));
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(rad,0.008,3,128),
+    new THREE.MeshBasicMaterial({color:0x47ffa9,transparent:true,opacity:i?0.10:0.17,
+      blending:THREE.AdditiveBlending,depthWrite:false}));
   ring.rotation.x=Math.PI*tilt; craftHolder.add(ring);
 });
+// soft green phosphor glow bathing the craft (additive radial sprite behind the wireframe)
+const glowTex=(()=>{ const c=document.createElement("canvas"); c.width=c.height=256;
+  const g=c.getContext("2d"), gr=g.createRadialGradient(128,128,0,128,128,128);
+  gr.addColorStop(0,"rgba(71,255,169,.5)"); gr.addColorStop(.45,"rgba(71,255,169,.13)");
+  gr.addColorStop(1,"rgba(71,255,169,0)");
+  g.fillStyle=gr; g.fillRect(0,0,256,256); return new THREE.CanvasTexture(c); })();
+const craftGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,
+  opacity:0.42,blending:THREE.AdditiveBlending,depthWrite:false}));
+craftGlow.scale.set(6,6,1); craftPivot.add(craftGlow);
 
 /* ---- 3D INTERACTIVE GALAXIES — point clouds you can drag to orbit ---- */
 const galaxyHolder=new THREE.Group(); scene.add(galaxyHolder); galaxyHolder.visible=false;
@@ -813,16 +902,38 @@ function normalizeNeoWs(j){
     objs.push({
       des:(o.name.match(/\(([^)]+)\)/)||[])[1] || o.name.trim(),
       date:ca.close_approach_date,
+      epoch:ca.epoch_date_close_approach||Date.parse(ca.close_approach_date),
       ld:parseFloat(ca.miss_distance.lunar),
+      km:parseFloat(ca.miss_distance.kilometers),
       v:parseFloat(ca.relative_velocity.kilometers_per_second),
       haz:!!o.is_potentially_hazardous_asteroid });
   }));
   objs.sort((a,b)=>a.date.localeCompare(b.date)||a.ld-b.ld);
   return {objs, tracked:j.element_count||objs.length, pha:objs.filter(o=>o.haz).length, src:"NASA NeoWs"};
 }
+/* NEAREST APPROACH — the closest upcoming miss from the live feed, SENTRY-box style */
+function updateNearestApproach(objs){
+  const now=Date.now();
+  const up=objs.filter(o=>(o.epoch||Date.parse(o.date)||0)>=now-864e5);
+  const best=(up.length?up:objs).slice().sort((a,b)=>a.ld-b.ld)[0];
+  if(!best)return;
+  const km=isFinite(best.km)?best.km:best.ld*384400;
+  const ep=best.epoch||Date.parse(best.date)||now, dt=ep-now;
+  const eta=dt>0?`${String(Math.floor(dt/36e5)).padStart(2,"0")}H ${String(Math.floor(dt/6e4)%60).padStart(2,"0")}M`:"PASSED";
+  const d=new Date(ep);
+  const stamp=`${d.getUTCFullYear()}-${MON[d.getUTCMonth()]}-${String(d.getUTCDate()).padStart(2,"0")} ${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}Z`;
+  const set=(id,v)=>{const el=$(id); if(el)el.textContent=v;};
+  set("#ma-des",`(${best.des})`);
+  set("#ma-ld",`${best.ld.toFixed(3)} LD`);
+  set("#ma-km",`${Math.round(km).toLocaleString("en-US")} KM`);
+  set("#ma-v",isNaN(best.v)?"—":`${best.v.toFixed(2)} KM/S`);
+  set("#ma-eta",eta);
+  set("#ma-date",stamp);
+}
 function renderFeed(data){
   const {objs,tracked,pha,src}=data;
   neoObjs=objs; rebuildNeoScatter();                       // feed the orbital-bodies view
+  updateNearestApproach(objs);                             // SENTRY nearest-approach box
   const orb=$("#orb-n"); if(orb)orb.textContent=String(objs.length).padStart(2,"0");
   $("#t-total").textContent=String(tracked).padStart(2,"0");
   $("#t-plotted").textContent=String(Math.min(objs.length,22)).padStart(2,"0");
@@ -854,6 +965,7 @@ async function loadNASA(){
 }
 renderFeed(SAMPLE);   // instant placeholder, replaced when live data lands
 loadNASA();
+setInterval(()=>updateNearestApproach(neoObjs),30000);   // keep the ETA counting down
 
 /* =====================  AUDIO / MISSION-TIME / LOCAL CLOCK  ===================== */
 /* FISHEYE toggle — a retrofuturist barrel/CRT bulge over the whole page */

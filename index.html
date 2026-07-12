@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Saira+Condensed:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css?v=13">
+<link rel="stylesheet" href="css/styles.css?v=15">
 </head>
 <body>
 
@@ -58,8 +58,8 @@
       </div>
     </section>
 
-    <section class="panel viewsw" id="orbital-mini" data-view="orbital" tabindex="0" role="button" aria-label="Orbital bodies view">
-      <span class="plabel">ORBITAL BODIES <i class="caret">▾</i></span>
+    <section class="panel viewsw" id="orbital-mini" data-view="orbital" tabindex="0" role="button" aria-label="Heliocentric solar map view">
+      <span class="plabel">HELIOCENTRIC SOLAR MAP <i class="caret">▾</i></span>
       <canvas class="pviz" data-viz="orbital"></canvas>
       <div class="pv-cap"><span>HELIOCENTRIC · <b id="orb-n">—</b> NEO</span><span class="open">VIEW ▸</span></div>
     </section>
@@ -91,13 +91,20 @@
       </div>
     </section>
 
-    <section class="panel collapsed" id="feedpanel">
+    <!-- the live NeoWs close-approach feed; clicking it opens the GEOCENTRIC EARTH MAP -->
+    <section class="panel viewsw collapsed" id="feedpanel" data-view="geo" tabindex="0" role="button" aria-label="Geocentric earth map view">
       <span class="plabel">SOURCE / OBJECT FEED <i class="caret">▾</i></span>
       <div class="pbody">
         <div class="feed-hd" id="feed-hd">▸ NASA NeoWs · CONNECTING… <span class="live">● LIVE</span></div>
         <div id="feedbox"></div>
       </div>
     </section>
+
+    <!-- DSN ground-station status, docked beside the craft picker -->
+    <div id="dsn-side">
+      <div class="dsnline" id="dsnline">◉ DSN · SYNCING…</div>
+      <div class="srcnote">NASA/JPL · NeoWs · DSN NOW · HORIZONS</div>
+    </div>
   </div>
 
 
@@ -110,9 +117,29 @@
       TRACKED <b id="t-total">—</b> · PLOTTED <b id="t-plotted">—</b> · PHA <b id="t-sentry">—</b>
     </div>
     <div class="stamp" id="stamp">—</div>
-    <div class="dsnline" id="dsnline">◉ DSN · SYNCING…</div>
-    <div class="srcnote">NASA/JPL · NeoWs · DSN NOW · HORIZONS</div>
   </header>
+
+  <!-- SENTRY-style map chrome — title chip · layer toggles · nearest-approach box.
+       Shown only on the heliocentric / geocentric map views (setView drives it). -->
+  <div id="map-ui" hidden>
+    <div class="map-chip" id="map-chip">HELIOCENTRIC SOLAR MAP</div>
+    <div class="map-toggles" id="map-toggles">
+      <button type="button" class="mtg" data-tg="orb">◎ ORB</button>
+      <button type="button" class="mtg on" data-tg="cme">• CME</button>
+      <button type="button" class="mtg on" data-tg="flr">✦ FLR</button>
+      <button type="button" class="mtg on" data-tg="sol">⊙ SOL</button>
+    </div>
+    <div class="map-approach">
+      <div class="ma-h">▸ NEAREST APPROACH</div>
+      <div class="ma-des" id="ma-des">—</div>
+      <div class="ma-row"><span>MISS</span><b id="ma-ld" class="red">—</b></div>
+      <div class="ma-row"><span></span><b id="ma-km" class="red">—</b></div>
+      <div class="ma-row"><span>V-REL</span><b id="ma-v" class="red">—</b></div>
+      <div class="ma-row"><span>ETA</span><b id="ma-eta" class="grn">—</b></div>
+      <div class="ma-date" id="ma-date">—</div>
+    </div>
+    <div class="map-hint">DRAG · ORBIT&nbsp;&nbsp;|&nbsp;&nbsp;SCROLL · ZOOM</div>
+  </div>
 
   <!-- ================= BOTTOM: mission-time bar ================= -->
   <section class="layer" id="mtime">
@@ -189,9 +216,9 @@
   </defs>
 </svg>
 
-<script src="js/config.js?v=14"></script>
+<script src="js/config.js?v=15"></script>
 <script src="vendor/three.min.js"></script>
 <script src="vendor/GLTFLoader.js"></script>
-<script src="js/app.js?v=13"></script>
+<script src="js/app.js?v=15"></script>
 </body>
 </html>
