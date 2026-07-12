@@ -144,12 +144,13 @@ function buildCmePlumes(evs){
   if(list.length>12){ const step=list.length/12; list=Array.from({length:12},(_,i)=>list[Math.floor(i*step)]); }
   cmePlumes=list.map(ev=>{
     const parts=[]; const N=ev.halo?680:520;
-    for(let i=0;i<N;i++) parts.push({
-      off:(Math.random()+Math.random()+Math.random())/1.5-1,   // ≈gaussian across the cone
-      up:(Math.random()+Math.random()+Math.random())/1.5-1,    // …and out of the ecliptic
-      f:Math.pow(Math.random(),0.72),                          // denser toward the sun
-      j:(Math.random()-0.5)*0.05,
-      sz:Math.random()<0.12?2.4:1.6, br:0.4+Math.random()*0.6 });
+    for(let i=0;i<N;i++){ const g=(Math.random()+Math.random()+Math.random())/1.5-1;
+      parts.push({
+      off:g*Math.abs(g),                                       // concentrated on the cone axis
+      up:((Math.random()+Math.random()+Math.random())/1.5-1)*0.8,
+      f:Math.pow(Math.random(),0.62),                          // denser toward the sun
+      j:(Math.random()-0.5)*0.03,
+      sz:Math.random()<0.1?1.8:1.2, br:0.5+Math.random()*0.5 }); }
     return {...ev, parts};
   });
 }
@@ -188,24 +189,30 @@ function drawOrbital(x,w,h,t,big){
       const travAU=Math.min(46, p.speed*((now-p.start)/1000)/AU_KM_);
       if(travAU<0.02)return;
       const lonR=(p.lon||0)*Math.PI/180, latR=(p.lat||0)*Math.PI/180,
-            haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180), fast=p.speed>=800;
+            haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180);
       p.parts.forEach((q,i)=>{ if(!big&&i%4)return;
         const au=q.f*travAU, rm=mapAU(au); if(rm>1.15)return;
         const az=(p.halo? q.off*Math.PI : lonR+q.off*haR)+q.j;
-        const el=latR+q.up*haR*0.75;
+        const el=latR+q.up*haR*0.6;
         const s=prj(rm*Math.cos(el)*Math.cos(az), rm*Math.sin(el), rm*Math.cos(el)*Math.sin(az));
-        const core=au<0.12, al=(core?0.95:q.br*(1-rm*0.7))*(big?1:0.8), sz=q.sz*(big?1:0.75);
-        x.fillStyle=core?`rgba(255,246,214,${al})`:(fast?`rgba(255,76,52,${al})`:`rgba(244,196,98,${al})`);
+        // SENTRY palette: a single coherent GOLD jet — white-hot near the sun,
+        // amber through the body, dimming ochre at the front; axis brighter than rim
+        const core=au<0.16, ax=1-Math.abs(q.off)*0.55;
+        const al=(core?0.95:q.br*ax*(1-rm*0.62))*(big?1:0.8), sz=q.sz*(big?1:0.8);
+        x.fillStyle=core?`rgba(255,248,224,${al})`:(rm<0.42?`rgba(246,200,110,${al})`:`rgba(212,164,86,${al})`);
         x.fillRect(s.x,s.y,sz,sz); });
     }); }
-  // FLR · real DONKI flares at the sun's rim (X red · M orange · C gold)
-  if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).forEach((f,k)=>{
-    const a=(f.lon||0)*Math.PI/180, tw=0.5+0.5*Math.sin(t*3+k*1.7);
-    const cls=(f.cls||"C")[0], sz=cls==="X"?4.5:cls==="M"?3.4:2.4;
-    const col=cls==="X"?"255,80,60":cls==="M"?"255,150,70":"255,214,122";
-    const s=prj(Math.cos(a)*0.045,0,Math.sin(a)*0.045);
-    x.fillStyle=`rgba(${col},${0.4+0.6*tw})`;
-    x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-sz,-sz,sz*2,sz*2); x.restore(); }); }
+  // FLR · real DONKI flares — twinkling star-bursts on the sun's limb at each flare's
+  // source longitude; GOES class sets the burst size (X > M > C)
+  if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).slice(-6).forEach((f,k)=>{
+    const a=(f.lon||0)*Math.PI/180, tw=0.5+0.5*Math.sin(t*4+k*2.1);
+    const cls=(f.cls||"C")[0], m=cls==="X"?1.9:cls==="M"?1.4:1;
+    const s=prj(Math.cos(a)*0.065,0,Math.sin(a)*0.065), r0=(1.6+2.2*tw)*m;
+    x.strokeStyle=`rgba(255,240,200,${0.3+0.5*tw})`; x.lineWidth=1;
+    x.beginPath(); x.moveTo(s.x-r0*2.2,s.y); x.lineTo(s.x+r0*2.2,s.y);
+    x.moveTo(s.x,s.y-r0*1.4); x.lineTo(s.x,s.y+r0*1.4); x.stroke();
+    x.fillStyle=`rgba(255,250,235,${0.45+0.5*tw})`;
+    x.beginPath(); x.arc(s.x,s.y,r0*0.55,0,7); x.fill(); }); }
   // SOL · the blazing core
   if(MAP_LAYERS.sol){ const g=x.createRadialGradient(cx,cy,0,cx,cy,R*0.30);
     g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
