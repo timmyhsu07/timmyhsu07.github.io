@@ -185,26 +185,6 @@ body:not(.retro) .hud-btn:hover,.hud-btn:focus-visible,.hud-btn.crt-hover{outlin
   text-transform:uppercase;color:var(--text)}
 #k-mission span{white-space:nowrap}
 
-/* --- Edgerunners-style glitch on the name --- */
-#k-name.glitch{position:relative;display:inline-block}
-#k-name.glitch::before,#k-name.glitch::after{content:attr(data-text);position:absolute;top:0;left:0;
-  width:100%;pointer-events:none;z-index:-1}
-#k-name.glitch::before{color:#39d6c8;text-shadow:0 0 6px rgba(57,214,200,.5);animation:glitchA 3.2s infinite steps(1)}
-#k-name.glitch::after{color:#ff3b2f;text-shadow:0 0 6px rgba(255,59,47,.5);animation:glitchB 3.2s infinite steps(1)}
-@keyframes glitchA{
-  0%,84%,100%{opacity:0;transform:translate(0,0);clip-path:inset(0 0 0 0)}
-  85%{opacity:.9;transform:translate(-3px,-2px);clip-path:inset(0 0 62% 0)}
-  88%{transform:translate(3px,1px);clip-path:inset(12% 0 55% 0)}
-  91%{transform:translate(-2px,2px);clip-path:inset(45% 0 25% 0)}
-  94%{opacity:.7;transform:translate(2px,-2px);clip-path:inset(2% 0 74% 0)}
-  97%{opacity:0}}
-@keyframes glitchB{
-  0%,84%,100%{opacity:0;transform:translate(0,0);clip-path:inset(0 0 0 0)}
-  85%{opacity:.85;transform:translate(3px,2px);clip-path:inset(60% 0 8% 0)}
-  88%{transform:translate(-3px,-1px);clip-path:inset(72% 0 10% 0)}
-  91%{transform:translate(2px,-2px);clip-path:inset(30% 0 40% 0)}
-  94%{opacity:.6;transform:translate(-2px,2px);clip-path:inset(80% 0 5% 0)}
-  97%{opacity:0}}
 #id .src{margin-top:11px;font-size:12.5px;letter-spacing:.06em;color:var(--text-dim)}
 #rail{display:inline;pointer-events:auto}
 #rail a{color:var(--red);text-decoration:none;pointer-events:auto;transition:color .15s,text-shadow .18s,filter .15s}
@@ -521,7 +501,6 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 @media(prefers-reduced-motion:reduce){
   #scan,#grain{animation:none}
   #panel,#panel-scrim{transition:opacity .15s}
-  #k-name.glitch::before,#k-name.glitch::after{animation:none;opacity:0}
   #recruiter::before{animation:none}
   .fcard{animation:none;opacity:1;transform:none}
   #retro-fx::before,body.retro #retro-fx,body.retro #warp{animation:none}

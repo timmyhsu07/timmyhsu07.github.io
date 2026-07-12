@@ -8,7 +8,6 @@ const beltMap = Object.fromEntries(CONFIG.belts.map(b=>[b.id,b]));
 CONFIG.projects.forEach((p,i)=>{p._i=i; p._belt=beltMap[p.belt]||CONFIG.belts[0];});
 
 $("#k-name").textContent    = CONFIG.name;
-$("#k-name").setAttribute("data-text", CONFIG.name);   // for the glitch pseudo-elements
 // the three focus areas → a justified row of spans beneath the name
 $("#k-mission").innerHTML = (CONFIG.mission||"").split("\n")
   .map(s=>s.replace(/,\s*$/,"").trim()).filter(Boolean)
@@ -858,7 +857,7 @@ loadNASA();
 
 /* =====================  AUDIO / MISSION-TIME / LOCAL CLOCK  ===================== */
 /* FISHEYE toggle — a retrofuturist barrel/CRT bulge over the whole page */
-const warp=$("#warp"), warpBg=$("#warp-bg"), feMap=document.getElementById("fisheye-map"), feDisp=document.getElementById("fisheye-disp");
+const warp=$("#warp"), feMap=document.getElementById("fisheye-map"), feDisp=document.getElementById("fisheye-disp");
 // Two user-facing knobs, edited in config.js → CONFIG.retro (safe fallbacks here):
 //   fisheyeBulge = how much it pops toward you · fisheyeSpan = sphere size vs screen
 //   (>1 pushes the sphere's rim OFF-screen, so only its gentle centre shows).
@@ -972,8 +971,11 @@ setInterval(tickClock,1000); tickClock();
 /* =====================  INIT + BOOT  ===================== */
 renderFleet();
 selectCraft("NH");
-startCycle();
-setView("craft");
+// Phones open on the GALAXY view (the left switcher is hidden ≤760px, matching the CSS);
+// desktop opens on the craft and auto-cycles the fleet.
+const mobileStart = matchMedia("(max-width:760px)").matches;
+setView(mobileStart ? "galaxy" : "craft");
+if(!mobileStart) startCycle();
 loadDSN(); setInterval(loadDSN, 30000);   // refresh live DSN every 30s
 
 const boot=$("#boot");
