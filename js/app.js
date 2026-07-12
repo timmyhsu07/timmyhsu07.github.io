@@ -639,15 +639,16 @@ const craftPivot=new THREE.Group(); craftHolder.add(craftPivot);
       blending:THREE.AdditiveBlending,depthWrite:false}));
   ring.rotation.x=Math.PI*tilt; craftHolder.add(ring);
 });
-// soft green phosphor glow bathing the craft (additive radial sprite behind the wireframe)
+// whisper-faint green wash centred on the craft — an inverse-vignette hint, not a
+// visible disc: very low peak with a long smooth falloff so no circular edge reads
 const glowTex=(()=>{ const c=document.createElement("canvas"); c.width=c.height=256;
   const g=c.getContext("2d"), gr=g.createRadialGradient(128,128,0,128,128,128);
-  gr.addColorStop(0,"rgba(71,255,169,.5)"); gr.addColorStop(.45,"rgba(71,255,169,.13)");
-  gr.addColorStop(1,"rgba(71,255,169,0)");
+  gr.addColorStop(0,"rgba(71,255,169,.16)"); gr.addColorStop(.3,"rgba(71,255,169,.08)");
+  gr.addColorStop(.65,"rgba(71,255,169,.025)"); gr.addColorStop(1,"rgba(71,255,169,0)");
   g.fillStyle=gr; g.fillRect(0,0,256,256); return new THREE.CanvasTexture(c); })();
 const craftGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transparent:true,
-  opacity:0.42,blending:THREE.AdditiveBlending,depthWrite:false}));
-craftGlow.scale.set(6,6,1); craftPivot.add(craftGlow);
+  opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false}));
+craftGlow.scale.set(11,11,1); craftPivot.add(craftGlow);
 
 /* ---- 3D INTERACTIVE GALAXIES — point clouds you can drag to orbit ---- */
 const galaxyHolder=new THREE.Group(); scene.add(galaxyHolder); galaxyHolder.visible=false;
