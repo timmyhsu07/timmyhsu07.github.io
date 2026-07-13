@@ -1,7 +1,5 @@
-/* ------------------------------------------------------------------ *
- *  RECRUITER VIEW — a clean, static (no-animation) render of the same
- *  CONFIG used by the immersive index.html. Edit js/config.js only.
- * ------------------------------------------------------------------ */
+// Recruiter view: a plain, static render of the same CONFIG that index.html uses.
+// No canvas, no animation — just builds the résumé HTML. Edit js/config.js, not this.
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const C = CONFIG;

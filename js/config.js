@@ -1,52 +1,37 @@
-/* ================================================================= *
- *  ▉▉  CONFIG — THIS IS THE ONLY PART YOU NEED TO EDIT  ▉▉
- *  A SENTRY-style HUD portfolio (sentry.artificialisabel.com):
- *  live JPL/NASA near-earth-object data, a wireframe spacecraft hero,
- *  and four portfolio panels (About / Research / Projects / Contact).
- * ================================================================= */
+/* CONFIG — everything editable lives here. Both index.html and recruiter.html read
+   this one object, so a change shows up in both. Edit values, not keys. */
 const CONFIG = {
   name:      "TIMOTHY HSU",                     // big serif name
   handle:    "@timmyhsu07",                     // (credit line is hidden by default)
   role:      "ML/AI RESEARCHER // CS & MATH",   // headline role
-  // The three focus areas, shown as a justified row under the name. One per line.
-  mission:   "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING",
+  mission:   "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING",   // one focus area per line
   credit:    "",                                // credit line under the title (blank = hidden)
 
-  // ── RETRO CRT / FISH-EYE look (main page only) ──  a convex CRT-tube bulge that
-  //    pops OUT toward you (centre magnified, straight lines bow outward). Tweak to
-  //    taste, then HARD-REFRESH (Cmd+Shift+R). Nothing else depends on these.
+  // Retro CRT bulge (main page only). Change a value, then hard-refresh (Cmd+Shift+R).
   retro: {
-    // HOW MUCH the screen pops OUT toward you (the bulge depth):
-    //   0 = flat · 0.25 = gentle · 0.40 = default · 0.55 = strong · 0.7 = extreme
-    //   (much past 0.45 starts pushing the edge HUD text off-screen)
+    // bulge depth. 0 = flat, 0.4 = default. Past ~0.45 the edge HUD text starts clipping.
     fisheyeBulge: 0.40,
-    // SPHERE SIZE vs the screen: lower = a rounder, more dramatic tube whose curve
-    //   reaches further toward the centre; higher = gentler, with the curvature kept
-    //   near the rim.  1.4 = dramatic · 1.5 = default · 1.9+ = subtle.
+    // sphere size vs the screen. Lower = rounder/more dramatic, higher = gentler.
     fisheyeSpan: 1.5,
-    // OVERSCAN — fills the space background out to the tube's edges so there are no
-    //   interior gaps before the bezel vignette. 1 = off · 1.2 = default.
+    // overscan the background so the corners stay covered after the bulge.
     fisheyeFill: 1.2,
-    // FIT — shrinks the WHOLE CRT to sit INSIDE the screen with a black frame around
-    //   it (like a CRT TV in its bezel) instead of filling edge-to-edge.
-    //   1 = fill the whole screen (no frame) · 0.88 = default · 0.8 = thicker frame.
+    // 1 = fill the screen, <1 shrinks it into a black frame (0.88 gives a TV bezel).
     fisheyeFit: 1,
   },
 
-  // NASA NeoWs API key. "DEMO_KEY" works but is rate-limited (~30/hr per IP);
-  // grab a free key in seconds at https://api.nasa.gov and paste it here.
+  // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP);
+  // free key at https://api.nasa.gov.
   nasaKey:   "Zc4xpogVH2Q1Xa0cnBBfmUdrZMpZNVt3icdbtlV7",
 
-  // top contact / source rail. To wire up your résumé, drop the PDF in this
-  // folder and point the RESUME url at its filename (see the RESUME entry).
+  // top link rail. For the résumé, drop the PDF in this folder and point RESUME at it.
   links: [
     { label:"GITHUB",   url:"https://github.com/timmyhsu07" },
     { label:"LINKEDIN", url:"https://www.linkedin.com/in/timhsu7/" },
     { label:"EMAIL",    url:"mailto:timmyhsu07@gmail.com" },
-    { label:"RESUME",   url:"Timothy_Hsu_Resume_2026.pdf?v=3" },   // save the PDF here with this name; bump ?v= when you replace it
+    { label:"RESUME",   url:"Timothy_Hsu_Resume_2026.pdf?v=3" },   // bump ?v= when you replace the PDF
   ],
 
-  // ── ABOUT ME ──  (left panel + overlay). Mirrors the LinkedIn "About".
+  // About: left panel + overlay
   about: {
     lead: "ML/AI researcher building high-performance computational systems at the intersection of machine learning, quantitative methods, and mathematics.",
     body: [
@@ -61,8 +46,8 @@ const CONFIG = {
     stack: ["Python","Java","C++","SQL","JavaScript","PyTorch","scikit-learn","NumPy","Pandas","SciPy","Matplotlib","UMAP","PaCMAP","OpenCV","scikit-image","Pillow","QuantLib","DuckDB","Parquet","pytest","Jupyter","Docker","Git","LaTeX","Three.js"],
   },
 
-  // ── RESEARCH ──  Each entry shows in the list; clicking it opens the detail
-  // pane on the right. `detail[]` are the bullet points for that pane.
+  // Research: each entry is a list row; clicking it opens the detail pane. detail[]
+  // are that pane's bullets.
   research: [
     { name:"Counterfactual Recourse under Uncertainty", org:"TRACE AI Lab · Rutgers", year:"2026",
       status:"ACTIVE",
@@ -99,7 +84,7 @@ const CONFIG = {
       links:[{label:"BREAK THROUGH TECH",url:"https://www.breakthroughtech.org/"}] },
   ],
 
-  // ── CONTACT ──  (bottom panel + overlay)
+  // Contact: bottom panel + overlay
   contact: {
     lead: "Signals open: feel free to contact me!",
     body: [
@@ -113,7 +98,7 @@ const CONFIG = {
     ],
   },
 
-  // ── PROJECT BELTS ──  category colors use the SENTRY key palette.
+  // Project categories. Each project's `belt` must match one of these ids.
   belts: [
     { id:"ml",      label:"MACHINE LEARNING", color:"#54ff8a", r:1.55 },
     { id:"quant",   label:"QUANT FINANCE",  color:"#ff6a1f", r:1.95 },
@@ -122,7 +107,7 @@ const CONFIG = {
     { id:"research",label:"RESEARCH",         color:"#ff3b2f", r:1.75 },
   ],
 
-  // ── PROJECTS ──  belt must match a belt id. status ∈ ACTIVE|DEPLOYED|ARCHIVED
+  // Projects. status is ACTIVE | DEPLOYED | ARCHIVED.
   projects: [
     { name:"GLIMPSE", belt:"ml", status:"ACTIVE",
       desc:"Geometric Lens for Inspecting Multiplicity of Sets and Explanations — an ML-interpretability pipeline in Python over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms to reduce projection selection to a single automated run. Adds 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness) and a novel autoencoder projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
@@ -134,16 +119,10 @@ const CONFIG = {
       links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/gamma-exit.git"}] },
   ],
 
-  // ── DEEP-SPACE FLEET ──  real NASA spacecraft. Each `type` renders a
-  // distinct procedural wireframe; `naif` is the NASA/NAIF id used to match the
-  // live Deep Space Network (DSN Now) feed for real-time range / data-rate.
-  //
-  // OPTIONAL — pixel-exact model: to show a real NASA CAD mesh for a craft, add
-  //   model:"models/voyager.glb"
-  // (drop the .glb in /models — see models/README.md). The procedural build
-  // shows instantly and the real model swaps in once loaded.
+  // Fleet. `type` picks the procedural wireframe; `naif` is the NAIF id used to match
+  // the live DSN feed. `model` (optional) is a GLB in /models that swaps in once loaded.
   fleet: [
-    // ── ACTIVE ──
+    // active
     { code:"VGR-1", name:"VOYAGER 1",      status:"ACTIVE", region:"HELIOSHEATH / INTERSTELLAR", range:"~167 AU", vrel:"~17 KM/S", signal:"DSN · X-BAND",  launch:"1977-09-05", type:"voyager",     naif:-31, model:"models/voyager.glb" },
     { code:"VGR-2", name:"VOYAGER 2",      status:"ACTIVE", region:"INTERSTELLAR SPACE",         range:"~139 AU", vrel:"~15 KM/S", signal:"DSN · S/X-BAND",launch:"1977-08-20", type:"voyager",     naif:-32, model:"models/voyager.glb" },
     { code:"NH",    name:"NEW HORIZONS",   status:"ACTIVE", region:"OUTER SOLAR SYSTEM",         range:"~63 AU",  vrel:"~14 KM/S", signal:"DSN · X-BAND",  launch:"2006-01-19", type:"newhorizons", naif:-98, model:"models/newhorizons.glb" },
@@ -152,7 +131,7 @@ const CONFIG = {
     { code:"MRO",   name:"MARS RECON ORBITER", status:"ACTIVE", region:"MARS ORBIT",           range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2005-08-12", type:"orbiter",     naif:-74, model:"models/mro.glb" },
     { code:"ODY",   name:"MARS ODYSSEY",   status:"ACTIVE", region:"MARS ORBIT",               range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2001-04-07", type:"orbiter",     naif:-53, model:"models/odyssey.glb" },
     { code:"STA",   name:"STEREO-A",       status:"ACTIVE", region:"HELIOCENTRIC · 1 AU",       range:"~1.0 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND",  launch:"2006-10-26", type:"orbiter",     naif:-234, model:"models/stereo.glb" },
-    // ── ENDED ──
+    // ended
     { code:"CAS",   name:"CASSINI",        status:"ENDED",  region:"SATURN SYSTEM",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1997-10-15", type:"cassini", naif:-82, model:"models/cassini.glb" },
     { code:"GLL",   name:"GALILEO",        status:"ENDED",  region:"JOVIAN SYSTEM",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1989-10-18", type:"galileo", naif:-77, model:"models/galileo.glb" },
     { code:"DAWN",  name:"DAWN",           status:"ENDED",  region:"CERES ORBIT",               range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2007-09-27", type:"orbiter", naif:-203, model:"models/dawn.glb" },
@@ -162,4 +141,3 @@ const CONFIG = {
     { code:"SPZ",   name:"SPITZER",        status:"ENDED",  region:"EARTH-TRAILING ORBIT",      range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2003-08-25", type:"orbiter", naif:-79, model:"models/spitzer.glb" },
   ],
 };
-/* ===================  END OF CONFIG  =================== */

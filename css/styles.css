@@ -1,9 +1,5 @@
-/* ============================================================= *
- *  TIMMY HSU — SENTRY-style HUD portfolio
- *  Mirrors sentry.artificialisabel.com: amber-on-near-black, mint
- *  Instrument Serif title, red bracketed panels, a wireframe
- *  spacecraft hero, and live JPL/NASA near-earth-object data.
- * ============================================================= */
+/* Mission-control HUD portfolio. Palette + fonts up top, then the CRT/retro layer,
+   the HUD panels, the section overlays, and the responsive rules at the bottom. */
 :root{
   --bg:#05040A; --panel:rgba(9,7,18,.6); --grid:#0F0C1C;
   --text:#f0b32a; --text-dim:#7c6320;
@@ -20,50 +16,48 @@ html,body{height:100%;background:var(--bg);color:var(--text);
   font-family:var(--mono);overflow:hidden;-webkit-font-smoothing:antialiased;font-size:15px}
 body{cursor:crosshair}
 canvas{display:block}
-/* #crt-screen wraps the whole tube (#warp bulge + #retro-fx scanlines/bezel). Its
-   transform makes it the containing block for those position:fixed children, so
-   scaling it shrinks the ENTIRE CRT to FIT inside a black frame (retro mode). */
+/* #crt-screen's transform makes it the containing block for its position:fixed
+   children, so scaling it (--fe-fit) shrinks the whole screen to sit in a black frame. */
 #crt-screen{position:fixed;inset:0;z-index:0;transform-origin:50% 50%;
   transform:scale(var(--fe-fit,1));transition:transform .45s ease}
 body.retro #crt-screen{overflow:hidden;border-radius:26px;
-  box-shadow:0 0 0 2px #000, 0 10px 60px 8px rgba(0,0,0,.85)}   /* rounded tube + black TV frame */
+  box-shadow:0 0 0 2px #000, 0 10px 60px 8px rgba(0,0,0,.85)}
 #warp{position:fixed;inset:0}
 #warp-bg{position:fixed;inset:0;z-index:0;
   transform:scale(var(--fe-fill,1));transform-origin:50% 50%;transition:transform .4s ease}
-/* fisheye bulges the ENTIRE screen — space visuals AND the HUD text/buttons */
+/* the bulge filter covers the whole screen, HUD text included */
 #warp.fisheye{filter:url(#fisheye-filter)}
 
-/* ---- RETRO CRT / OLD-TV look (toggled by the (RETRO LOOK) button in the mission bar) ---- */
-/* Layered like a real cathode-ray tube: RGB aperture grille + scanlines +
-   curved-glass vignette/glare/chromatic-fringe, over the fisheye barrel bulge. */
-:root{--crt:.3}   /* CRT overlay intensity — locked at 30% */
+/* --- retro CRT layer (RETRO LOOK button) --- */
+/* stacked like a real tube: aperture grille + scanlines + curved-glass vignette,
+   all over the fisheye bulge */
+:root{--crt:.3}   /* overlay intensity */
 #retro-fx{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;transition:opacity .4s}
 body.retro #retro-fx{opacity:var(--crt,1)}
 #retro-fx>div{position:absolute;inset:0;pointer-events:none}
-/* 1 · aperture-grille phosphor stripes — fine red/green/blue vertical triads */
+/* aperture grille: fine R/G/B vertical stripes */
 .crt-grille{mix-blend-mode:screen;opacity:.5;
   background:repeating-linear-gradient(90deg,
     rgba(255,26,26,.9) 0, rgba(255,26,26,.9) 1px,
     rgba(30,255,90,.85) 1px, rgba(30,255,90,.85) 2px,
     rgba(44,90,255,.9) 2px, rgba(44,90,255,.9) 3px)}
-/* 2 · horizontal scanlines (darken between raster lines) — prominent like a real tube */
+/* horizontal scanlines (dark gaps between raster lines) */
 .crt-scan{mix-blend-mode:multiply;
   background:repeating-linear-gradient(0deg,
     rgba(0,0,0,.6) 0, rgba(0,0,0,.6) 1px, transparent 1px, transparent 3px)}
-/* rolling "vertical hold" bright band sweeping down the tube */
+/* bright band rolling down the screen (bad vertical hold) */
 #retro-fx::before{content:"";position:absolute;left:0;right:0;height:24%;top:-24%;z-index:2;
   background:linear-gradient(180deg,transparent,rgba(170,255,205,.09) 44%,rgba(220,255,235,.16) 50%,rgba(170,255,205,.09) 56%,transparent);
   mix-blend-mode:screen;animation:tvRoll 7.5s linear infinite}
-/* 3 · curved-glass: rounded CRT-tube bezel (black rounded corners) + deep corner
-      vignette + soft top-left glare + chromatic edge fringe. The heavy rounded inset
-      shadow is what makes the picture read as a bulging tube framed by a dark bezel. */
+/* curved glass: rounded bezel + corner vignette + top-left glare + edge color fringe.
+   The heavy inset shadow is what sells the "bulging tube in a dark frame" look. */
 .crt-glass{border-radius:46px;
   box-shadow:inset 0 0 220px 90px rgba(0,0,0,.92), inset 0 0 90px 20px rgba(0,0,0,.7);
   background:
     radial-gradient(140% 140% at 50% 50%, transparent 48%, rgba(0,0,0,.55) 78%, rgba(0,0,0,.97) 100%),
     linear-gradient(90deg, rgba(255,0,64,.07), transparent 5%, transparent 95%, rgba(0,170,255,.07)),
     radial-gradient(48% 38% at 22% 15%, rgba(255,255,255,.05), transparent 62%)}
-/* whole-screen jitter, flicker + a brief power-on bloom when retro engages */
+/* subtle jitter + flicker while retro is on */
 body.retro #warp{animation:tvShudder 6s infinite, tvFlicker 5s infinite}
 body.retro #retro-fx{animation:crtOn .5s ease-out}
 @keyframes crtOn{0%{filter:brightness(2.6) contrast(.2);transform:scaleY(.004)}
@@ -76,12 +70,12 @@ body.retro #retro-fx{animation:crtOn .5s ease-out}
   93%{transform:translate(-3px,0)} 94.5%{transform:translate(2px,1px)} 96%{transform:translate(-1px,0)}}
 @keyframes tvFlicker{0%,100%,49%,51%{opacity:1} 50%{opacity:.93} 72%{opacity:1} 73%{opacity:.9} 74%{opacity:1}}
 
-/* ---- one-time CRT POWER-ON when the boot sequence finishes ---- */
+/* --- power-on animation (plays after boot) --- */
 #crt-boot{position:fixed;inset:0;z-index:120;pointer-events:none;opacity:0;background:#eafff2}
 body.crt-boot #crt-boot{animation:crtBootFlash 1.6s ease-out forwards}
 body.crt-boot #warp{animation:crtBootWarp 1.6s ease-out}
 body.crt-boot #retro-fx{opacity:1;animation:crtBootScan 1.6s steps(1,end) forwards}
-/* the screen collapses to a bright line, snaps open, then the phosphor settles */
+/* collapse to a bright line, snap open, settle */
 @keyframes crtBootFlash{
   0%{opacity:1;transform:scaleY(1)} 6%{opacity:.95;transform:scaleY(.02)}
   14%{opacity:.8;transform:scaleY(.004)} 22%{opacity:.55;transform:scaleY(1)}
@@ -90,10 +84,10 @@ body.crt-boot #retro-fx{opacity:1;animation:crtBootScan 1.6s steps(1,end) forwar
   0%{transform:scaleY(.004);filter:brightness(3) saturate(0)}
   10%{transform:scaleY(.03)} 30%{transform:scaleY(1);filter:brightness(1.8) saturate(.7)}
   55%{filter:brightness(1.15)} 100%{filter:none;transform:none}}
-/* scanlines flicker hard for a moment, then fade out as the picture stabilises */
+/* scanlines flicker, then fade out */
 @keyframes crtBootScan{0%{opacity:1}12%{opacity:.35}22%{opacity:.9}38%{opacity:.5}55%{opacity:.7}75%{opacity:.3}100%{opacity:0}}
 
-#stars,#scene,#viewport{position:fixed;top:0;left:0;width:100%;height:100%}   /* always full-viewport */
+#stars,#scene,#viewport{position:fixed;top:0;left:0;width:100%;height:100%}
 #stars{z-index:0}
 #scene{z-index:1}
 b{font-weight:600}
@@ -104,7 +98,7 @@ b{font-weight:600}
   mix-blend-mode:screen;opacity:.45;animation:roll 9s linear infinite}
 @keyframes roll{from{background-position:0 0}to{background-position:0 120px}}
 #vign{background:radial-gradient(ellipse at 50% 48%,transparent 60%,rgba(0,0,0,.34) 90%,rgba(0,0,0,.62) 100%)}
-/* faint neon-green reference grid behind everything */
+/* faint green reference grid, masked to fade at the edges */
 #grid{position:fixed;inset:0;z-index:0;pointer-events:none;
   background-image:linear-gradient(rgba(71,255,169,.055) 1px,transparent 1px),
     linear-gradient(90deg,rgba(71,255,169,.055) 1px,transparent 1px);
@@ -121,18 +115,15 @@ b{font-weight:600}
 .corner.br{bottom:12px;right:12px;border-bottom:1px solid;border-right:1px solid}
 
 #hud{position:fixed;inset:0;z-index:20;pointer-events:none}
-/* In retro, the fisheye pushes edge HUD text OUTWARD past the tube box (where the filter
-   region clips it → cut-off names). Scaling the whole HUD in a touch gives that push room,
-   so nothing clips. Keeps proportions; the transform is hit-tested so the pointer remap
-   still lines up. #nav lives inside #hud so it scales in lockstep with the mission bar. */
+/* the bulge pushes edge HUD text outward, and the filter region clips it (cut-off
+   names). Scaling the HUD down a touch leaves room so nothing clips. #nav is inside
+   #hud so it scales with everything else. */
 body.retro #hud{transform:scale(.93);transform-origin:50% 50%}
 #hud .layer,#hud .panel,#hud header{pointer-events:auto}
 .live{color:var(--red);animation:blink 1.1s steps(2) infinite}
 @keyframes blink{50%{opacity:.25}}
 
-/* =============================================================
- *  PANEL FRAME + BRACKET LABEL
- * ============================================================= */
+/* --- panel frame + bracket label --- */
 .panel{position:relative;border:1px solid var(--line-soft);background:var(--panel);
   -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
 .panel.fixed{position:fixed}
@@ -145,17 +136,14 @@ body.retro #hud{transform:scale(.93);transform-origin:50% 50%}
   color:var(--red);text-transform:uppercase;background:var(--bg);
   padding:2px 8px;border:1px solid var(--red);white-space:nowrap}
 .plabel .caret{font-style:normal;margin-left:6px;opacity:.8;display:inline-block;transition:transform .2s}
-/* collapsible panels — click the label / ▾ caret to fold the body away.
-   Collapsed = just the bracket-label bar (no empty box), so they stack tightly. */
+/* collapsed panel = just its label bar, no empty box, so they stack tight */
 #sidecol .panel>.plabel{cursor:pointer}
 .panel.collapsed{flex:0 0 auto!important;height:auto!important;min-height:0!important;max-height:none!important;border-color:transparent;background:none;overflow:visible}
 .panel.collapsed>*:not(.plabel){display:none!important}
 .panel.collapsed>.plabel{position:static;display:inline-flex;margin:0}
 .panel.collapsed>.plabel .caret{transform:rotate(-90deg)}
 
-/* =============================================================
- *  HUD BUTTON — neon brightens on hover / focus
- * ============================================================= */
+/* --- hud button --- */
 .hud-btn{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--text);
   background:rgba(20,14,2,.5);border:1px solid var(--line);padding:5px 11px;cursor:pointer;
   text-transform:uppercase;pointer-events:auto;display:inline-flex;align-items:center;gap:7px;line-height:1;
@@ -172,13 +160,11 @@ body:not(.retro) .hud-btn:hover,.hud-btn:focus-visible,.hud-btn.crt-hover{outlin
 .hud-btn .led{width:8px;height:8px;border-radius:50%;background:var(--hi);box-shadow:0 0 8px var(--hi);flex:0 0 auto}
 .hud-btn[aria-pressed="false"] .led{background:var(--text-dim);box-shadow:none}
 
-/* =============================================================
- *  RIGHT: title / identity block
- * ============================================================= */
+/* --- title / identity (top right) --- */
 #id{position:fixed;top:20px;right:28px;z-index:22;text-align:right;max-width:56vw}
 #title{display:inline-block;text-align:center}
-/* the big serif name is filled with horizontal CRT raster stripes (background-clip:text),
-   with the phosphor glow re-applied via drop-shadow so it wraps the striped letterforms */
+/* name: serif filled with horizontal raster stripes via background-clip:text. Glow
+   has to be drop-shadow, not text-shadow, since the fill is transparent. */
 #k-name{display:block;font-family:var(--serif);font-weight:700;font-style:italic;
   font-size:clamp(36px,5.7vw,80px);line-height:.9;letter-spacing:.01em;text-transform:uppercase;
   background:repeating-linear-gradient(180deg,#9fffd4 0 2px,rgba(45,175,116,.9) 2px 3px,#7df5bd 3px 4px);
@@ -202,14 +188,14 @@ body:not(.retro) #rail a:hover,#rail a.crt-hover{color:#ff8f8f;filter:brightness
 #id .credit b{color:var(--text)} #id .credit b#k-handle{color:var(--hi)}
 #id .hd-ctl{margin-top:10px;display:flex;justify-content:flex-end}
 
-/* --- DSN live status — docked in the LEFT column beside the craft picker --- */
+/* --- DSN status (left column, under the craft panel) --- */
 #dsn-side{flex:0 0 auto;border:1px solid var(--line-soft);background:rgba(5,4,10,.42);padding:8px 10px}
 #dsn-side .dsnline{font-family:var(--tt);font-size:11px;letter-spacing:.05em;color:var(--hi)}
 #dsn-side .dsnline b{color:var(--text)} #dsn-side .dsnline.off{color:var(--text-dim)}
 #dsn-side .srcnote{margin-top:3px;font-family:var(--tt);font-size:10px;letter-spacing:.08em;color:var(--hi);opacity:.7}
 .view-label{position:fixed;top:20px;left:340px;z-index:22}
 
-/* --- SENTRY map chrome: title chip · ORB/CME/FLR/SOL toggles · nearest-approach --- */
+/* --- map overlay: title chip · layer toggles · nearest-approach box --- */
 #map-ui{position:fixed;top:20px;left:306px;z-index:21;display:flex;flex-direction:column;
   gap:10px;align-items:flex-start;pointer-events:none}
 #map-ui[hidden]{display:none}
@@ -235,14 +221,12 @@ body:not(.retro) #rail a:hover,#rail a.crt-hover{color:#ff8f8f;filter:brightness
 .ma-date{margin-top:8px;color:var(--text-dim);font-size:10.5px}
 .map-hint{font-family:var(--tt);font-size:10px;letter-spacing:.1em;color:var(--text-dim)}
 
-/* --- center viewport (2D orbital / galaxy views, over the WebGL craft) --- */
+/* --- center viewport (2D map / galaxy, layered over the WebGL craft) --- */
 #viewport{z-index:2;display:none}
 #viewport.show{display:block}
 #scene.hide{display:none}
 
-/* =============================================================
- *  LEFT SIDE COLUMN: view switchers · craft spec · object feed
- * ============================================================= */
+/* --- left column: view switchers · craft spec · object feed --- */
 #sidecol{position:fixed;top:20px;left:20px;width:266px;bottom:176px;z-index:22;
   display:flex;flex-direction:column;gap:10px}
 #sidecol>.panel{display:flex;flex-direction:column}
@@ -264,7 +248,7 @@ body:not(.retro) .viewsw:hover,.viewsw:focus-visible,.viewsw.crt-hover{outline:n
 .cr-dsn{margin-top:8px;padding-top:7px;border-top:1px dashed var(--line-soft);
   font-family:var(--tt);font-size:10.5px;letter-spacing:.05em;color:var(--text-dim)}
 .cr-dsn .live{color:var(--cyan)} .cr-dsn b{color:var(--text)}
-/* satellite-view toggle affordance, matching the ORBITAL/GALAXY "VIEW ▸" hint */
+/* craft panel's "SATELLITE VIEW ▸" hint, matching the map/galaxy ones */
 .cr-view{display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:8px;
   border-top:1px solid var(--line-soft);font-family:var(--tt);font-size:10px;letter-spacing:.1em;color:var(--text-dim)}
 .cr-view .open{color:var(--orange)}
@@ -272,15 +256,14 @@ body:not(.retro) .viewsw:hover,.viewsw:focus-visible,.viewsw.crt-hover{outline:n
 .viewsw:not(.on) .cr-view #cr-view-lbl{color:var(--text-dim)}
 body:not(.retro) .viewsw:hover .cr-view .open,.viewsw.crt-hover .cr-view .open{color:#fff2cf;text-shadow:0 0 8px var(--orange)}
 
-/* orbital + galaxy mini switch panels (fixed height; stay animated) */
-/* NOTE: no overflow:hidden — it was clipping the panel's ▾ title label */
+/* map + galaxy mini panels. Don't add overflow:hidden — it clips the ▾ label. */
 #orbital-mini{flex:0 0 auto;height:94px;position:relative}
-#galaxy-mini{flex:0 0 auto;height:120px;position:relative}   /* taller: room for name + distance */
+#galaxy-mini{flex:0 0 auto;height:120px;position:relative}   /* taller: fits name + distance */
 .gx-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
 .gx-meta b{color:var(--hi);font-size:11px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gx-meta i{color:var(--cyan);font-style:normal;font-size:9px;letter-spacing:.1em}
 .pviz{position:absolute;inset:0;width:100%;height:100%;opacity:.92;pointer-events:none;
-  clip-path:inset(0)}   /* keep the canvas inside the panel without clipping the label */
+  clip-path:inset(0)}   /* clip the canvas to the panel without clipping the label */
 .pv-cap{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;justify-content:space-between;
   align-items:flex-end;gap:8px;padding:16px 10px 6px;
   background:linear-gradient(0deg,rgba(5,4,10,.95),rgba(5,4,10,.3) 62%,transparent);
@@ -288,9 +271,9 @@ body:not(.retro) .viewsw:hover .cr-view .open,.viewsw.crt-hover .cr-view .open{c
 .pv-cap b{color:var(--hi)} .pv-cap .open{color:var(--orange);white-space:nowrap}
 body:not(.retro) .viewsw:hover .open,.viewsw.crt-hover .open{color:#fff2cf;text-shadow:0 0 8px var(--orange)}
 
-/* fleet + galaxies rosters — vertical, in the side column, one per active view */
+/* fleet + galaxy rosters; only the one for the active view shows */
 #fleet{flex:1 1 auto;min-height:96px}
-#sidecol #fleet,#sidecol #galaxies{display:none}   /* beats #sidecol>.panel */
+#sidecol #fleet,#sidecol #galaxies{display:none}   /* higher specificity than #sidecol>.panel */
 #sidecol.show-fleet #fleet{display:flex}
 #sidecol.show-fleet #feedpanel{flex:0 0 auto;height:130px}
 #fleet .pbody{display:flex;flex-direction:column;min-height:0;flex:1;padding:12px 12px 9px}
@@ -337,9 +320,7 @@ body:not(.retro) .fcard:hover,.fcard.crt-hover{border-color:var(--text);box-shad
 #feedbox .ln .ld{text-align:right} #feedbox .ln .v{text-align:right;color:var(--text-dim)}
 #feedbox .ln.close{color:var(--red)} #feedbox .ln.close .v{color:var(--red)}
 
-/* =============================================================
- *  BOTTOM: section nav cards — span the full width of the screen
- * ============================================================= */
+/* --- bottom nav cards (full-width row) --- */
 #nav{position:fixed;left:20px;right:20px;bottom:52px;z-index:24;display:flex;gap:12px;pointer-events:auto}
 .navcard{flex:1 1 0;min-width:0;display:flex;flex-direction:row;align-items:center;justify-content:center;
   gap:clamp(8px,1.2vw,18px);padding:clamp(18px,3.6vh,42px) clamp(6px,1vw,16px);
@@ -352,8 +333,7 @@ body:not(.retro) .navcard:hover,.navcard:focus-visible,.navcard.crt-hover{outlin
   letter-spacing:.03em;color:var(--hi);text-transform:uppercase;text-shadow:0 0 10px rgba(71,255,169,.3)}
 body:not(.retro) .navcard:hover .nc-label,.navcard.crt-hover .nc-label{color:#eafff2;text-shadow:0 0 14px rgba(71,255,169,.6)}
 
-/* page-switch buttons (RECRUITER LOOK / RETRO LOOK), stacked above CONTACT */
-/* RECRUITER LOOK — big, bold, with a travelling border light */
+/* RECRUITER LOOK button — the ::before is a conic-gradient border that rotates */
 #id .id-cta{margin-top:14px;display:flex;justify-content:flex-end}
 #recruiter{position:relative;border:1px solid var(--hi);color:var(--hi);text-decoration:none;
   font-family:var(--mono);font-weight:700;font-size:clamp(15px,1.5vw,22px);letter-spacing:.2em;
@@ -368,9 +348,7 @@ body:not(.retro) #recruiter:hover,#recruiter.crt-hover{background:rgba(71,255,16
 @keyframes travelBorder{to{--ang:360deg}}
 body:not(.retro) .navcard:hover .nc-label,.navcard.crt-hover .nc-label{color:#fff2cf;text-shadow:0 0 8px rgba(71,255,169,.6)}
 
-/* =============================================================
- *  BOTTOM: mission-time bar
- * ============================================================= */
+/* --- mission-time bar (bottom) --- */
 #mtime{position:fixed;left:0;right:0;bottom:0;height:52px;z-index:23;display:flex;align-items:center;gap:13px;
   padding:0 24px;border-top:1px solid var(--line-soft);background:linear-gradient(0deg,rgba(5,4,10,.94),transparent)}
 #mtime #mt-play,#mtime #fisheye{border-color:var(--orange);color:var(--orange);white-space:nowrap}
@@ -386,9 +364,7 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 .mt-clock{font-family:var(--tt);font-size:clamp(15px,1.5vw,22px);letter-spacing:.08em;color:var(--text);
   text-shadow:0 0 10px rgba(240,179,42,.35);white-space:nowrap}
 
-/* =============================================================
- *  TOOLTIP / DOSSIER
- * ============================================================= */
+/* --- tooltip + project dossier --- */
 #tip{position:fixed;z-index:30;pointer-events:none;opacity:0;transform:translate(-50%,-150%);transition:opacity .12s;
   font-family:var(--tt);font-size:11px;background:rgba(5,4,10,.94);border:1px solid var(--text);padding:4px 9px;
   white-space:nowrap;box-shadow:0 0 16px rgba(240,179,42,.3)}
@@ -419,9 +395,7 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 #dossier a.btn:hover{background:var(--hi);color:var(--bg);box-shadow:0 0 20px rgba(71,255,169,.5)}
 #dossier a.btn.ghost:hover{background:var(--text);color:var(--bg)}
 
-/* =============================================================
- *  SECTION OVERLAY
- * ============================================================= */
+/* --- section overlay (about / research / projects / contact) --- */
 #panel-scrim{position:fixed;inset:0;z-index:45;pointer-events:none;opacity:0;
   background:radial-gradient(ellipse at center,rgba(5,4,10,.5),rgba(2,1,4,.88));
   -webkit-backdrop-filter:blur(1.5px);backdrop-filter:blur(1.5px);transition:opacity .3s}
@@ -441,7 +415,7 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
   margin-top:6px;text-shadow:0 0 12px rgba(71,255,169,.4)}
 #panel .p-body{padding:18px 22px 24px;flex:1 1 auto;min-height:0;overflow-y:auto;
   scrollbar-width:thin;scrollbar-color:var(--orange) rgba(240,179,42,.08)}
-/* custom themed scrollbar for the overlay body */
+/* themed scrollbar */
 #panel .p-body::-webkit-scrollbar{width:9px}
 #panel .p-body::-webkit-scrollbar-track{background:rgba(240,179,42,.06);border-left:1px solid var(--line-soft)}
 #panel .p-body::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--orange),var(--text));box-shadow:inset 0 0 8px rgba(240,179,42,.4)}
@@ -474,7 +448,7 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 .card .c-open{font-family:var(--tt);font-size:11px;letter-spacing:.14em;color:var(--text-dim)}
 .card:hover .c-open{color:var(--orange);text-shadow:0 0 8px var(--orange)}
 
-/* research master-detail (list + a right pane that unblurs on click) */
+/* research: list on the left, detail pane on the right that unblurs on click */
 .research-split{display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.08fr);gap:16px;align-items:start}
 .research-list{display:flex;flex-direction:column;gap:10px}
 .research-item{border:1px solid var(--line-soft);background:rgba(12,9,4,.5);padding:12px 14px;cursor:pointer;
@@ -502,19 +476,15 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 .research-detail .rd-links a:hover{color:#dffbf7;text-shadow:0 0 8px rgba(57,214,200,.6)}
 @media(max-width:640px){ .research-split{grid-template-columns:1fr} .research-detail.blurred{filter:none;opacity:.9} }
 
-/* =============================================================
- *  BOOT
- * ============================================================= */
+/* --- boot sequence --- */
 #boot{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;justify-content:center;
   padding:0 8vw;font-family:var(--tt);font-size:14px;line-height:2;transition:opacity .7s}
 #boot.done{opacity:0;pointer-events:none}
 #boot .l{color:var(--text-dim)} #boot .l .ok{color:var(--hi)} #boot .l .w{color:var(--red)}
 #boot .cur{display:inline-block;width:9px;height:15px;background:var(--hi);vertical-align:middle;animation:blink .9s steps(2) infinite;margin-left:2px}
 
-/* =============================================================
- *  RESPONSIVE
- * ============================================================= */
-/* long project/research text always wraps + panels scroll within the margins */
+/* --- responsive --- */
+/* force long unbroken strings to wrap so they don't blow out the panels */
 .p-text,.p-lead,.card .c-desc,#dossier .desc,.research-item .ri-desc,.research-detail li,.p-facts .v{overflow-wrap:anywhere}
 
 @media(max-width:1150px){ #sidecol{width:264px} .view-label{left:300px} }

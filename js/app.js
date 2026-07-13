@@ -1,4 +1,4 @@
-/* ----------  helpers + identity  ---------- */
+// helpers + identity
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -8,15 +8,15 @@ const beltMap = Object.fromEntries(CONFIG.belts.map(b=>[b.id,b]));
 CONFIG.projects.forEach((p,i)=>{p._i=i; p._belt=beltMap[p.belt]||CONFIG.belts[0];});
 
 $("#k-name").textContent    = CONFIG.name;
-// the three focus areas → a justified row of spans beneath the name
+// mission = one focus area per line → a span each
 $("#k-mission").innerHTML = (CONFIG.mission||"").split("\n")
   .map(s=>s.replace(/,\s*$/,"").trim()).filter(Boolean)
   .map(c=>`<span>${esc(c)}</span>`).join("");
 $("#rail").innerHTML = CONFIG.links.map(l=>
   `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("");
 
-/* =====================  TWINKLING STARFIELD (2D)  ===================== */
-// Faint background stars behind the spacecraft; a few periodically "shine".
+// --- starfield ---
+// faint background stars; a few pulse brighter on a sine cycle
 const starCv=$("#stars"), sctx=starCv.getContext("2d");
 let stars=[];
 function initStars(){
@@ -44,11 +44,10 @@ initStars(); addEventListener("resize",initStars);
   requestAnimationFrame(starLoop);
 })();
 
-/* =====================  2D VIEWS: orbital bodies + galaxy  ===================== */
-// Mini panels stay animated; you can switch the full-screen center to either.
+// --- 2D center views: solar map + galaxy ---
+// mini panels always animate; the full-screen center follows the active view
 let neoObjs=[], neoOrbits=[], nearEarthMarks=[];
-// Real, catalogued galaxies (name · distance in light-years · Hubble morphology).
-// The view cycles through them like the fleet; each renders to its actual shape.
+// name · distance · Hubble type · render params (arm count, flatness, tint)
 const GALAXIES=[
   {name:"MILKY WAY",         dist:"27,000 LY TO CORE", q:"Milky Way galaxy center",      type:"barred",     arms:4, flat:0.42, hue:[255,214,150]},
   {name:"ANDROMEDA · M31",   dist:"2.5 MILLION LY",    q:"Andromeda galaxy M31",         type:"spiral",     arms:2, flat:0.30, hue:[188,208,255]},
@@ -64,10 +63,9 @@ const GALAXIES=[
 ];
 let galIdx=0;
 const galaxyParticles=[]; for(let i=0;i<1300;i++)galaxyParticles.push({i,r:Math.pow(i/1300,0.62),off:(Math.random()-0.5)*0.55,tw:Math.random()*6.28,rr:Math.random()});
-// drag-to-rotate state shared by the galaxy + orbital full-screen views (2D fallback only)
+// drag-to-rotate state, shared by the full-screen map + galaxy views
 let vpSpin=0, vpTilt=0;
-// all 8 planets + Pluto (distances compressed to fit); Earth's Moon, the 4 Galilean
-// moons of Jupiter, and Saturn's rings render in the full-screen view.
+// r is a compressed orbit radius (0-1), not real AU. moons/rings only draw full-screen.
 const PLANETS=[
   {r:0.11,c:"#d8a06a",s:1.9, ph:0.4,n:"MERCURY",sz:1.7},
   {r:0.17,c:"#e6c9a0",s:1.5, ph:2.0,n:"VENUS",  sz:2.6},
@@ -80,10 +78,9 @@ const PLANETS=[
   {r:0.75,c:"#a8ece4",s:0.24,ph:4.1,n:"URANUS", sz:3.5},
   {r:0.86,c:"#5f8fff",s:0.18,ph:0.7,n:"NEPTUNE",sz:3.5},
   {r:0.95,c:"#c9b8a8",s:0.13,ph:3.2,n:"PLUTO",  sz:1.5}];
-/* Each plotted NEO gets a 3D Keplerian orbit (semi-major axis, eccentricity,
-   inclination, node, periapsis — seeded stably from its designation) rendered as a
-   thin tilted ellipse, wrapped in a diffuse red/gold debris cloud. Together the 30
-   ellipses + their clouds form SENTRY's dense particle field. */
+// We don't have real orbital elements per NEO, so derive plausible ones (a, e, inc,
+// node, periapsis) by hashing the designation — stable across reloads, and enough to
+// draw a tilted ellipse + a debris cloud around it. hashStr gives a 0-1 float per key.
 const hashStr=s=>{let h=2166136261;for(const c of String(s)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return (h>>>0)/4294967295;};
 function rebuildNeoScatter(){
   neoOrbits=neoObjs.slice(0,30).map(o=>{
@@ -91,7 +88,7 @@ function rebuildNeoScatter(){
           r4=hashStr(o.des+"O"),r5=hashStr(o.des+"w");
     const a=0.9+r1*2.6, e=0.15+r2*0.55, inc=(r3-0.5)*1.1, Om=r4*6.2832, w=r5*6.2832;
     const cO=Math.cos(Om),sO=Math.sin(Om),cI=Math.cos(inc),sI=Math.sin(inc),cW=Math.cos(w),sW=Math.sin(w);
-    const at=v=>{                                             // true anomaly → mapped 3D point
+    const at=v=>{                                             // true anomaly → point on the mapped ellipse
       const rAU=a*(1-e*e)/(1+e*Math.cos(v));
       const xa=rAU*(Math.cos(v)*cW-Math.sin(v)*sW), za=rAU*(Math.cos(v)*sW+Math.sin(v)*cW);
       const y=za*sI, z2=za*cI;
@@ -100,8 +97,7 @@ function rebuildNeoScatter(){
       return {X:X*f, Y:y*f, Z:Z*f};
     };
     const pts=[]; for(let k=0;k<=64;k++)pts.push(at(k/64*6.2832));
-    // debris spread around the WHOLE orbit with broad jitter — a diffuse cloud, not
-    // the streaky clumps that hug the line
+    // scatter dust over the whole orbit with wide jitter (haz orbits get more)
     const dust=[], nDust=o.haz?240:130;
     for(let k=0;k<nDust;k++){
       const v=hashStr(o.des+"d"+k)*6.2832;
@@ -112,59 +108,55 @@ function rebuildNeoScatter(){
     }
     return {haz:!!o.haz, pts, dust};
   });
-  // close-approach diamonds clustered around Earth, like SENTRY's gold markers
+  // the 7 nearest passes, jittered into a little cluster near Earth
   nearEarthMarks=neoObjs.slice().sort((a,b)=>a.ld-b.ld).slice(0,7).map(o=>({
     dx:(hashStr(o.des+"ex")-0.5)*0.10, dz:(hashStr(o.des+"ez")-0.5)*0.10,
     dy:(hashStr(o.des+"ey")-0.5)*0.03, haz:!!o.haz}));
 }
-/* SENTRY-style HELIOCENTRIC SOLAR MAP — CME plumes and solar flares are REAL events
-   from NASA DONKI (Space Weather Database). Each CME is modeled physically: its plume
-   points along the event's heliographic longitude, spans its measured half-angle cone,
-   and its front sits at speed × time-since-launch (converted to the map's compressed
-   AU scale) — so the map shows where each ejection actually is right now.
-   ORB/CME/FLR/SOL buttons toggle the layers; drag orbits, scroll zooms. */
+// Heliocentric map. CMEs and flares are real DONKI events, placed physically: a CME
+// plume points along its heliographic lon/lat, spreads over its half-angle, and its
+// front sits at speed × time-since-launch (mapped through mapAU). ORB/CME/FLR/SOL
+// toggle the layers.
 const MAP_LAYERS={orb:true,cme:true,flr:true,sol:true};
 let vpZoom=1;
-// the map compresses planet distances (Earth 1 AU→0.23, Jupiter 5.2→0.46 …); this
-// fits that same curve so CME fronts land at the right radius among the planets
+// real AU → compressed map radius. Fitted to the planet radii above (Earth 1→0.23,
+// Jupiter 5.2→0.46) so CME fronts land between the right planets.
 const mapAU=au=>0.23*Math.pow(Math.max(au,0.001),0.42);
 const AU_KM_=1.496e8;
 let cmePlumes=[], solFlares=[], solarStatus="⊙ DONKI · SYNCING…";
-// fallback modeled events (recent real-shaped values) so the map never renders empty
+// used when DONKI is unreachable so the map isn't empty (realistic sample values)
 const CME_FALLBACK=[
   {lon:22, halfAngle:29, speed:488, start:Date.now()-30*36e5, halo:false},
   {lon:156,halfAngle:24, speed:620, start:Date.now()-20*36e5, halo:false},
   {lon:-95,halfAngle:38, speed:450, start:Date.now()-52*36e5, halo:false}];
 const FLR_FALLBACK=[{lon:-70,cls:"C5.9",t:Date.now()-2*36e5}];
 function buildCmePlumes(evs){
-  // sample up to 12 events spread across the whole window — older CMEs have physically
-  // traveled further out (speed × age), so the plume field spans Mercury→Jupiter
+  // cap at 12 events, evenly sampled across the window (drawing all of them is too busy)
   let list=(evs&&evs.length?evs:CME_FALLBACK);
   if(list.length>12){ const step=list.length/12; list=Array.from({length:12},(_,i)=>list[Math.floor(i*step)]); }
   cmePlumes=list.map(ev=>{
     const parts=[]; const N=ev.halo?680:520;
     for(let i=0;i<N;i++){ const g=(Math.random()+Math.random()+Math.random())/1.5-1;
       parts.push({
-      off:g*Math.abs(g),                                       // concentrated on the cone axis
+      off:g*Math.abs(g),                                       // bias toward the cone axis
       up:((Math.random()+Math.random()+Math.random())/1.5-1)*0.8,
-      f:Math.pow(Math.random(),0.62),                          // denser toward the sun
+      f:Math.pow(Math.random(),0.62),                          // bias toward the sun
       j:(Math.random()-0.5)*0.03,
       sz:Math.random()<0.1?1.8:1.2, br:0.5+Math.random()*0.5 }); }
     return {...ev, parts};
   });
 }
-buildCmePlumes();   // instant fallback; replaced when DONKI lands
+buildCmePlumes();   // seed with fallback; loadDONKI() rebuilds with real data
 function drawOrbital(x,w,h,t,big){
   const cx=w*0.5, cy=h*0.52, zm=big?vpZoom:1, R=Math.min(w,h)*(big?0.46:0.52)*zm;
   const tilt=Math.max(0.12,Math.min(0.92, 0.40 + (big?vpTilt:0))), spin=(big?vpSpin:0);
-  // true 3D camera: spin rotates the scene about the ecliptic pole, tilt pitches it;
-  // out-of-plane (Y) motion foreshortens as the view goes face-on — like SENTRY
+  // spin = yaw about the pole, tilt = pitch. vf foreshortens out-of-plane (Y) motion
+  // as the view goes face-on, so orbits flatten correctly.
   const vf=Math.sqrt(Math.max(0.1,1-tilt*tilt)), cS=Math.cos(spin), sS=Math.sin(spin);
   const prj=(X,Y,Z)=>{ const x2=X*cS+Z*sS, z2=-X*sS+Z*cS;
     return {x:cx+x2*R, y:cy+z2*R*tilt-Y*R*vf}; };
   x.lineWidth=1;
-  // ORB · the orbit web — every plotted NEO's thin Keplerian ellipse (red = PHA,
-  // olive-gold otherwise), the planets' rings in faint amber, Earth's orbit in blue
+  // ORB: NEO ellipses (red = hazardous, else gold) + planet orbits (Earth in blue)
   if(MAP_LAYERS.orb){
     neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
       x.strokeStyle=o.haz?"rgba(255,64,47,.30)":"rgba(212,164,70,.20)";
@@ -174,15 +166,14 @@ function drawOrbital(x,w,h,t,big){
       x.beginPath(); for(let k=0;k<=64;k++){ const a=k/64*6.2832, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
         k?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);} x.stroke(); });
     x.lineWidth=1;
-    // debris field — the diffuse red/gold square clouds shed by every orbit
+    // dust clouds. skip every other orbit + 2/3 of points in the small mini view
     neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
       o.dust.forEach((d,k)=>{ if(!big&&k%3)return;
         const s=prj(d.X,d.Y,d.Z), tw=0.6+0.4*Math.sin(t*1.4+d.tw);
         x.fillStyle=o.haz?`rgba(255,64,47,${0.7*d.a*tw})`:`rgba(226,178,80,${0.55*d.a*tw})`;
         const z=big?d.sz:1.4; x.fillRect(s.x,s.y,z,z); }); });
   }
-  // CME · real DONKI ejections — 3D cones aimed along each event's measured
-  // longitude AND latitude, front at speed × elapsed time
+  // CME: cone aimed along each event's lon/lat, front advanced by speed × elapsed time
   if(MAP_LAYERS.cme){ const now=Date.now();
     cmePlumes.forEach(p=>{
       const travAU=Math.min(46, p.speed*((now-p.start)/1000)/AU_KM_);
@@ -194,15 +185,13 @@ function drawOrbital(x,w,h,t,big){
         const az=(p.halo? q.off*Math.PI : lonR+q.off*haR)+q.j;
         const el=latR+q.up*haR*0.6;
         const s=prj(rm*Math.cos(el)*Math.cos(az), rm*Math.sin(el), rm*Math.cos(el)*Math.sin(az));
-        // SENTRY palette: a single coherent GOLD jet — white-hot near the sun,
-        // amber through the body, dimming ochre at the front; axis brighter than rim
+        // color by distance from the sun: white-hot core → amber → ochre at the front
         const core=au<0.16, ax=1-Math.abs(q.off)*0.55;
         const al=(core?0.95:q.br*ax*(1-rm*0.62))*(big?1:0.8), sz=q.sz*(big?1:0.8);
         x.fillStyle=core?`rgba(255,248,224,${al})`:(rm<0.42?`rgba(246,200,110,${al})`:`rgba(212,164,86,${al})`);
         x.fillRect(s.x,s.y,sz,sz); });
     }); }
-  // SOL · the blazing core — glow radius capped so zooming in keeps a compact
-  // bright ball (like SENTRY) instead of washing out the inner debris field
+  // SOL: sun glow. Cap the radius so zooming in doesn't wash out the inner planets.
   if(MAP_LAYERS.sol){ const sr=Math.min(R*0.30, Math.min(w,h)*0.16);
     const g=x.createRadialGradient(cx,cy,0,cx,cy,sr);
     g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
@@ -211,9 +200,8 @@ function drawOrbital(x,w,h,t,big){
   x.fillStyle="#fff6de"; x.shadowColor="#ffd27a"; x.shadowBlur=big?30:12;
   x.beginPath(); x.arc(cx,cy,(big?9:4)*Math.min(Math.max(zm,0.8),1.8),0,7); x.fill(); x.shadowBlur=0;
   if(big&&MAP_LAYERS.sol){ x.fillStyle="rgba(71,255,169,.8)"; x.font="10px 'Share Tech Mono',monospace"; x.fillText("SOL",cx+12,cy+3); }
-  // FLR · real DONKI flares — twinkling star-bursts on the sun's limb at each flare's
-  // source longitude; GOES class sets the burst size (X > M > C). Drawn AFTER the
-  // sun glow so the bursts stay visible on top of it.
+  // FLR: cross-spark at each flare's source longitude on the limb, sized by GOES class
+  // (X > M > C). Must draw after SOL or the glow hides it.
   if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).slice(-6).forEach((f,k)=>{
     const a=(f.lon||0)*Math.PI/180, tw=0.5+0.5*Math.sin(t*4+k*2.1);
     const cls=(f.cls||"C")[0], m=cls==="X"?1.9:cls==="M"?1.4:1;
@@ -223,7 +211,7 @@ function drawOrbital(x,w,h,t,big){
     x.moveTo(s.x,s.y-r0*1.4); x.lineTo(s.x,s.y+r0*1.4); x.stroke();
     x.fillStyle=`rgba(255,250,235,${0.5+0.5*tw})`;
     x.beginPath(); x.arc(s.x,s.y,r0*0.55,0,7); x.fill(); }); }
-  // planets — pale-cyan discs with soft glow + TT labels (Earth stays blue)
+  // planets: cyan discs (Earth blue), with moons/rings/labels in the full-screen view
   PLANETS.forEach(p=>{ const a=t*p.s+p.ph, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
     const px=s.x, py=s.y, psz=(p.sz||2.4)*(big?1.6:0.7)*Math.min(zm,1.6);
     const col=p.n==="EARTH"?"#5f9bff":"#bfe9f2";
@@ -237,34 +225,32 @@ function drawOrbital(x,w,h,t,big){
       x.fillStyle="rgba(207,211,220,.9)"; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
       if(m.nm==="MOON"){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
     if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
-  // close-approach diamonds hugging Earth (this week's nearest passes)
+  // nearest-pass markers, positioned relative to Earth's current spot
   if(big){ const pe=PLANETS[2], aE=t*pe.s+pe.ph;
     const eX=Math.cos(aE)*pe.r, eZ=Math.sin(aE)*pe.r;
     nearEarthMarks.forEach(m=>{ const s=prj(eX+m.dx,m.dy,eZ+m.dz);
       x.fillStyle=m.haz?"#ff5a3c":"#f0b32a";
       x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-2.6,-2.6,5.2,5.2); x.restore(); }); }
-  // spacecraft — green diamonds, like SENTRY's ◆ JUNO markers
+  // a few labelled spacecraft as green diamonds (decorative, not real positions)
   if(big){ [["JUNO",0.47],["PSP",0.13],["VGR-1",1.02]].forEach(([nm,rf],k)=>{
     const a=t*0.22+k*2.3, s=prj(Math.cos(a)*rf,0,Math.sin(a)*rf);
     x.fillStyle="#54ff8a"; x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-3.2,-3.2,6.4,6.4); x.restore();
     x.font="10px 'Share Tech Mono',monospace"; x.fillStyle="rgba(84,255,138,.9)"; x.fillText("◆ "+nm,s.x+8,s.y+3); }); }
 }
-/* GEOCENTRIC EARTH MAP — opened from the SOURCE/OBJECT FEED panel. Every tracked NEO
-   from the live NeoWs feed becomes a trajectory line streaking past Earth (red = PHA),
-   with a diamond at its closest-approach point. Drag orbits, scroll zooms. */
+// Earth-centered view (opened from the object feed). Each NeoWs object is a line
+// passing Earth at its miss distance, with a diamond at closest approach.
 function drawGeo(x,w,h,t){
   const cx=w*0.5, cy=h*0.52, R=Math.min(w,h)*0.46*vpZoom;
   const tilt=Math.max(0.14,Math.min(0.9, 0.38+vpTilt)), spin=vpSpin;
-  // faint lunar-orbit ellipse + geostationary ring
+  // lunar-orbit + geostationary rings
   x.lineWidth=1;
   x.strokeStyle="rgba(150,162,188,.22)"; x.beginPath(); x.ellipse(cx,cy,R*0.16,R*0.16*tilt,0,0,7); x.stroke();
   x.strokeStyle="rgba(122,90,20,.25)"; x.beginPath(); x.ellipse(cx,cy,R*0.05,R*0.05*tilt,0,0,7); x.stroke();
-  // NEO trajectories — 3D lines rotated by drag, offset from Earth by miss distance
   const list=neoObjs.slice(0,42);
   list.forEach((o,i)=>{
     const az=i*2.399+spin, incl=Math.sin(i*1.71)*0.55;
     const dx=Math.cos(az)*Math.cos(incl), dy=Math.sin(incl), dz=Math.sin(az)*Math.cos(incl);
-    // perpendicular offset at the miss distance (LD → screen scale)
+    // push the line off Earth by the miss distance (clamped at 40 LD)
     const oaz=az+1.5708, om=R*(0.07+Math.min(o.ld||10,40)/40*0.85);
     const ox=Math.cos(oaz)*om, oy=Math.sin(i*2.9)*om*0.25, oz=Math.sin(oaz)*om;
     const L=R*1.5, P=[-L,L].map(s=>({X:ox+dx*s, Y:oy+dy*s, Z:oz+dz*s}));
@@ -272,15 +258,14 @@ function drawGeo(x,w,h,t){
     const A=prj(P[0]), B=prj(P[1]);
     x.strokeStyle=o.haz?"rgba(255,64,47,.55)":"rgba(240,179,42,.30)"; x.lineWidth=o.haz?1.2:1;
     x.beginPath(); x.moveTo(A.sx,A.sy); x.lineTo(B.sx,B.sy); x.stroke();
-    // closest-approach diamond
-    const C=prj({X:ox,Y:oy,Z:oz});
+    const C=prj({X:ox,Y:oy,Z:oz});   // closest-approach point
     x.fillStyle=o.haz?"#ff402f":"#f0b32a";
     x.save(); x.translate(C.sx,C.sy); x.rotate(0.785);
     const dsz=o.haz?4.4:3.2; x.fillRect(-dsz,-dsz,dsz*2,dsz*2); x.restore();
     if(o.haz||i<2){ x.font="10px 'Share Tech Mono',monospace";
       x.fillStyle=o.haz?"rgba(255,90,70,.9)":"rgba(240,179,42,.75)"; x.fillText(o.des,C.sx+9,C.sy+3); }
   });
-  // Earth + Moon at the centre, on top of the traffic
+  // Earth + Moon last, so they sit on top of the trajectory lines
   const ma=t*0.5+spin, mx=cx+Math.cos(ma)*R*0.16, my=cy+Math.sin(ma)*R*0.16*tilt;
   x.fillStyle="#cfd3dc"; x.beginPath(); x.arc(mx,my,2.2,0,7); x.fill();
   x.fillStyle="rgba(190,200,220,.75)"; x.font="9px 'Share Tech Mono',monospace"; x.fillText("MOON",mx+5,my+3);
@@ -288,23 +273,22 @@ function drawGeo(x,w,h,t){
   x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText("EARTH",cx+9,cy+3);
 }
 function drawGalaxy(x,w,h,t,big){
-  // ALWAYS the exact centre of the drawing surface (= centre of the screen).
   const cx=w/2, cy=h/2, R=Math.min(w,h)*(big?0.4:0.46);
   const gal=GALAXIES[galIdx]||GALAXIES[0], hue=gal.hue||[255,205,130], arms=gal.arms||2;
-  // drag: horizontal spins the disk, vertical tilts it (face-on ↔ edge-on)
+  // drag: horizontal spins the disk, vertical tilts it face-on ↔ edge-on
   const spin=t*0.06 + (big?vpSpin:0);
   const flat=Math.max(0.07,Math.min(1, gal.flat + (big?vpTilt:0)));
-  // dominant central bulge/glow anchored at centre
+  // central bulge glow
   const g0=x.createRadialGradient(cx,cy,0,cx,cy,R*1.3);
   g0.addColorStop(0,`rgba(${hue[0]},${hue[1]},${hue[2]},.38)`); g0.addColorStop(.16,"rgba(255,165,75,.15)");
   g0.addColorStop(.5,"rgba(120,80,30,.05)"); g0.addColorStop(1,"rgba(0,0,0,0)");
   x.fillStyle=g0; x.beginPath(); x.arc(cx,cy,R*1.3,0,7); x.fill();
   galaxyParticles.forEach(g=>{
     let px,py,b;
-    if(gal.type==="elliptical"){                                   // smooth ellipsoidal blob, no arms
+    if(gal.type==="elliptical"){                                   // no arms, just a blob
       const a=g.i*2.399+spin, rr=Math.pow(g.rr,0.5);
       px=cx+Math.cos(a)*R*rr; py=cy+Math.sin(a)*R*rr*flat; b=1-rr*0.82;
-    } else if(gal.type==="irregular"){                             // clumpy, off-axis starburst (M82)
+    } else if(gal.type==="irregular"){                             // clumpy, off-axis (M82)
       const a=g.i*2.399+spin, jr=R*(0.15+g.rr*0.8);
       px=cx+Math.cos(a)*jr*(0.55+g.off); py=cy+Math.sin(a)*jr*flat*(0.7+g.off*0.4)+g.off*R*0.12; b=1-g.rr*0.6;
     } else {                                                        // spiral / barred / edge-on
@@ -315,9 +299,9 @@ function drawGalaxy(x,w,h,t,big){
     const tw=big?(0.6+0.4*Math.sin(t*2.2+g.tw)):1;
     x.fillStyle=`rgba(${(hue[0]*b*0.92+28)|0},${(hue[1]*b*0.86+38)|0},${(hue[2]*b*0.7+28)|0},${(0.7*b+0.18)*tw})`;
     const s=big?Math.max(0.9,3-g.r*1.6):1.2; x.beginPath(); x.arc(px,py,s,0,7); x.fill(); });
-  // edge-on dust lane (Sombrero)
+  // dark dust lane across edge-on galaxies (Sombrero)
   if(gal.type==="edge"){ x.strokeStyle="rgba(0,0,0,.6)"; x.lineWidth=big?5:2.2; x.beginPath(); x.moveTo(cx-R*0.98,cy); x.lineTo(cx+R*0.98,cy); x.stroke(); }
-  // bright nucleus at exact centre
+  // nucleus
   x.fillStyle="#fff4d6"; x.shadowColor="#ffd27a"; x.shadowBlur=big?52:16; x.beginPath(); x.arc(cx,cy,big?10:3.2,0,7); x.fill(); x.shadowBlur=0;
 }
 const vizzes=[];
@@ -335,8 +319,8 @@ function setView(mode){
   viewMode=mode;
   $$("#sidecol .viewsw").forEach(el=>el.classList.toggle("on",el.dataset.view===mode));
   const vp=$("#viewport"), sc=$("#scene");
-  const gl3d = mode==="galaxy" && !!renderer;                       // 3D galaxy needs WebGL
-  sc.classList.toggle("hide", !(mode==="craft" || gl3d));           // #scene shows the craft OR the 3D galaxy
+  const gl3d = mode==="galaxy" && !!renderer;                       // WebGL galaxy, else 2D fallback
+  sc.classList.toggle("hide", !(mode==="craft" || gl3d));           // #scene = craft or 3D galaxy
   vp.classList.toggle("show", mode==="orbital" || mode==="geo" || (mode==="galaxy" && !renderer));
   if(renderer){
     craftHolder.visible = (mode==="craft");
@@ -344,24 +328,23 @@ function setView(mode){
     if(gl3d){ buildGalaxy3D(galIdx); targZ=8.2; targX=-0.42; spin=!reduce; }
     else if(mode==="craft"){ targZ=6.6; targX=-0.42; }
   }
-  // rosters: fleet shows in satellite view, galaxies shows in galaxy view
+  // fleet roster in craft view, galaxy roster in galaxy view
   const side=$("#sidecol"), wasFleet=side.classList.contains("show-fleet"), wasGx=side.classList.contains("show-galaxies");
   side.classList.toggle("show-fleet",mode==="craft");
   side.classList.toggle("show-galaxies",mode==="galaxy");
-  // collapse the mini previews that aren't the active view → room to scroll the roster
+  // collapse the mini previews that aren't active, to free up scroll room
   const om=$("#orbital-mini"), gm=$("#galaxy-mini");
   if(om)om.classList.toggle("collapsed",mode!=="orbital");
   if(gm)gm.classList.toggle("collapsed",mode!=="galaxy");
-  // the object feed unfolds while its geocentric map is up
   const fp=$("#feedpanel"); if(fp)fp.classList.toggle("collapsed",mode!=="geo");
   if(mode==="craft" && !wasFleet && typeof renderFleet==="function") renderFleet();
   if(mode==="galaxy" && !wasGx && typeof renderGalaxies==="function") renderGalaxies();
   const vl=$("#view-label"); if(vl)vl.textContent=VIEW_LABEL[mode]||"";
-  // SENTRY map chrome (title chip · ORB/CME/FLR/SOL · nearest approach) — maps only
+  // map overlay (title chip, layer toggles, nearest-approach box) — only on the maps
   const mu=$("#map-ui"); if(mu){ mu.hidden=!(mode==="orbital"||mode==="geo");
     const chip=$("#map-chip"); if(chip)chip.textContent=VIEW_LABEL[mode]||"";
     const tg=$("#map-toggles"); if(tg)tg.style.display=(mode==="orbital")?"flex":"none";
-    const ms=$("#map-status"); if(ms)ms.style.display=(mode==="orbital")?"block":"none";  // solar weather is helio-only
+    const ms=$("#map-status"); if(ms)ms.style.display=(mode==="orbital")?"block":"none";  // space weather is heliocentric-only
     if(mode==="orbital"||mode==="geo")vpZoom=1; }
 }
 $$("#sidecol .viewsw").forEach(el=>{
@@ -369,13 +352,13 @@ $$("#sidecol .viewsw").forEach(el=>{
   el.addEventListener("click",go);
   el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}});
 });
-// panel labels: on a view-switcher the label switches view; on a roster it folds the body away
+// clicking a panel label: switches view on a view-switcher, folds the body on a roster
 $$("#sidecol .panel>.plabel").forEach(lbl=>{
   lbl.addEventListener("click",e=>{ e.stopPropagation();
     const p=lbl.parentElement;
     if(p.classList.contains("viewsw")){ setView(p.dataset.view); return; }
     p.classList.toggle("collapsed");
-    // icons drawn while collapsed have no size — redraw once the roster is visible
+    // canvases have zero size while collapsed, so redraw after they're visible
     if(p.id==="fleet" && !p.classList.contains("collapsed")) requestAnimationFrame(()=>requestAnimationFrame(redrawFleetIcons));
     if(p.id==="galaxies" && !p.classList.contains("collapsed")) requestAnimationFrame(()=>requestAnimationFrame(redrawGalaxyIcons));
   });
@@ -391,7 +374,7 @@ $$("#sidecol .panel>.plabel").forEach(lbl=>{
   requestAnimationFrame(hud2d);
 })();
 
-/* drag-to-rotate + scroll-to-zoom the full-screen map / galaxy views */
+// drag to rotate + wheel to zoom the full-screen map / galaxy
 let vpDrag=false, vpLX=0, vpLY=0;
 vpCv.style.touchAction="none";
 vpCv.addEventListener("pointerdown",e=>{ if(viewMode==="craft")return; vpDrag=true; vpLX=e.clientX; vpLY=e.clientY; vpCv.style.cursor="grabbing"; });
@@ -401,19 +384,19 @@ addEventListener("pointermove",e=>{ if(!vpDrag)return;
   vpLX=e.clientX; vpLY=e.clientY; });
 addEventListener("wheel",e=>{ if(viewMode!=="orbital"&&viewMode!=="geo")return;
   vpZoom=Math.max(0.5,Math.min(3.6, vpZoom*Math.exp(-e.deltaY*0.0012))); },{passive:true});
-/* ORB / CME / FLR / SOL layer toggles on the heliocentric map */
+// ORB / CME / FLR / SOL layer toggles
 $$("#map-toggles .mtg").forEach(b=>b.addEventListener("click",()=>{
   const k=b.dataset.tg; MAP_LAYERS[k]=!MAP_LAYERS[k]; b.classList.toggle("on",MAP_LAYERS[k]); }));
 
-/* galaxy view cycles through the real galaxies, like the fleet auto-cycle */
+// galaxy auto-cycle (same idea as the fleet)
 function updateGalaxyLabel(){ const g=GALAXIES[galIdx]; const n=$("#gx-name"), d=$("#gx-dist");
   if(n)n.textContent=g.name; if(d)d.textContent=g.dist; markActiveGalaxy();
-  if(viewMode==="galaxy" && renderer && typeof buildGalaxy3D==="function") buildGalaxy3D(galIdx); }  // swap the 3D model too
+  if(viewMode==="galaxy" && renderer && typeof buildGalaxy3D==="function") buildGalaxy3D(galIdx); }  // rebuild the 3D points
 let galTimer=null;
 function restartGalaxyCycle(){ if(reduce)return; clearInterval(galTimer);
   galTimer=setInterval(()=>{ galIdx=(galIdx+1)%GALAXIES.length; updateGalaxyLabel(); }, 12000); }
 
-/* GALAXIES roster (dropdown like the fleet), shown while the galaxy view is on */
+// galaxy roster thumbnails (a simpler, static version of drawGalaxy)
 function drawMiniGalaxy(x,w,h,gal){
   const cx=w/2,cy=h/2,R=Math.min(w,h)*0.42,hue=gal.hue||[255,205,130],arms=gal.arms||2,flat=gal.flat;
   const g0=x.createRadialGradient(cx,cy,0,cx,cy,R*1.4);
@@ -459,14 +442,14 @@ function renderGalaxies(){
 updateGalaxyLabel();
 restartGalaxyCycle();
 
-/* portfolio nav-card icons (drawn to match the fleet cards) */
+// nav-card icons (about / research / projects / contact), canvas-drawn
 function drawNavIcon(cv,sec){
   if(!cv) return;
   const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio,2);
-  if(r.width<8||r.height<20) return;   // layout not settled (real min is ~28px) — a later redraw handles it
+  if(r.width<8||r.height<20) return;   // layout not settled yet; a later redraw catches it
   cv.width=Math.max(1,Math.round(r.width*dpr)); cv.height=Math.max(1,Math.round(r.height*dpr));
   const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
-  const w=r.width,h=r.height,cx=w/2,cy=h/2; const s=h/30; x.translate(cx,cy); x.scale(s,s); x.translate(-cx,-cy);  // scale icon to the card
+  const w=r.width,h=r.height,cx=w/2,cy=h/2; const s=h/30; x.translate(cx,cy); x.scale(s,s); x.translate(-cx,-cy);  // fit the icon to the card
   x.strokeStyle="#47ffa9"; x.fillStyle="#47ffa9"; x.lineWidth=1.1; x.globalAlpha=.92;
   if(sec==="about"){ x.beginPath(); x.arc(cx,cy-4,3.4,0,7); x.stroke(); x.beginPath(); x.arc(cx,cy+8,7,Math.PI,0); x.stroke(); }
   else if(sec==="research"){ x.beginPath(); x.arc(cx,cy,3,0,7); x.stroke(); for(let k=0;k<3;k++){x.beginPath(); x.ellipse(cx,cy,9,3.4,k*Math.PI/3+0.4,0,7); x.stroke();} }
@@ -476,35 +459,35 @@ function drawNavIcon(cv,sec){
 }
 function drawNavIcons(){ $$("#nav .navcard").forEach(el=>drawNavIcon(el.querySelector(".nav-ic"), el.dataset.sec)); }
 requestAnimationFrame(drawNavIcons);
-addEventListener("load", drawNavIcons);                 // after everything is laid out
+addEventListener("load", drawNavIcons);
 addEventListener("resize", drawNavIcons);
-[120,350,800,1600].forEach(t=>setTimeout(drawNavIcons,t));   // guaranteed late redraws once layout/fonts settle
-if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawNavIcons);   // after the serif font swaps in
-// redraw whenever a card's real size settles (catches late CSS/font layout on reload)
+// icons depend on final layout + the web font; redraw a few times as things settle
+[120,350,800,1600].forEach(t=>setTimeout(drawNavIcons,t));
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(drawNavIcons);
 if(window.ResizeObserver){ const navRO=new ResizeObserver(()=>drawNavIcons());
   $$("#nav .navcard .nav-ic").forEach(c=>navRO.observe(c)); }
 
-/* =====================  SECTION NAV (open overlays)  ===================== */
+// nav cards open their section overlay
 $$("[data-sec]").forEach(el=>{
   el.addEventListener("click",e=>{e.stopPropagation();openPanel(el.dataset.sec);});
   el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPanel(el.dataset.sec);}});
 });
 
-/* =====================  DEEP-SPACE FLEET (auto-cycles)  ===================== */
+// --- fleet (auto-cycles the active craft) ---
 let fleetTab="ACTIVE", currentCraft=null, cycleTimer=null;
 function drawFleetIcon(cv,f){
   const r=cv.getBoundingClientRect(), dpr=Math.min(devicePixelRatio,2);
-  if(r.width<4||r.height<4){cv.dataset.pending="1";return;}   // hidden/collapsed → draw later when visible
+  if(r.width<4||r.height<4){cv.dataset.pending="1";return;}   // hidden/collapsed; redraw when shown
   delete cv.dataset.pending;
   cv.width=Math.max(1,r.width*dpr); cv.height=Math.max(1,r.height*dpr);
   const x=cv.getContext("2d"); x.setTransform(dpr,0,0,dpr,0,0);
   const w=r.width,h=r.height,cx=w*0.5,cy=h*0.5, col=f.status==="ENDED"?"#7c6320":"#47ffa9";
-  // the silhouettes are drawn for a ~64×30 box — scale to fit this canvas
+  // silhouettes are authored for a 64×30 box; scale to whatever the canvas is
   const sc=Math.min(w/64,h/30); x.translate(cx,cy); x.scale(sc,sc); x.translate(-cx,-cy);
   x.strokeStyle=col; x.fillStyle=col; x.lineWidth=1/sc; x.globalAlpha=.95;
   const line=(a,b,c,d)=>{x.beginPath();x.moveTo(a,b);x.lineTo(c,d);x.stroke();};
   const box=(bx,by,bw,bh)=>x.strokeRect(bx-bw/2,by-bh/2,bw,bh);
-  // spoked dish (antenna face): ellipse + radial spokes + concentric ring
+  // dish: outer ellipse, inner ellipse, 8 spokes
   const dish=(dx,dy,r0)=>{ x.beginPath();x.ellipse(dx,dy,r0,r0*0.62,0,0,7);x.stroke();
     x.beginPath();x.ellipse(dx,dy,r0*0.5,r0*0.31,0,0,7);x.stroke();
     for(let k=0;k<8;k++){const a=k*Math.PI/4;x.beginPath();x.moveTo(dx,dy);x.lineTo(dx+Math.cos(a)*r0,dy+Math.sin(a)*r0*0.62);x.stroke();} };
@@ -547,8 +530,7 @@ function renderFleet(){
   $("#n-active").textContent=CONFIG.fleet.filter(f=>f.status==="ACTIVE").length;
   $("#n-ended").textContent=CONFIG.fleet.filter(f=>f.status==="ENDED").length;
   const list=CONFIG.fleet.filter(f=>f.status===fleetTab);
-  // craft that carry a real NASA model get a pre-rendered wireframe thumbnail;
-  // the rest fall back to the procedural canvas silhouette.
+  // craft with a GLB get a pre-rendered thumbnail; others use the canvas silhouette
   const thumbFor=f=>f.model?f.model.replace(/^models\//,"models/thumbs/").replace(/\.glb$/i,".png"):"";
   $("#fleet-cards").innerHTML=list.map(f=>{
     const th=thumbFor(f);
@@ -564,7 +546,7 @@ function renderFleet(){
     const f=CONFIG.fleet.find(c=>c.code===el.dataset.code);
     const cv=el.querySelector("canvas");
     if(cv) requestAnimationFrame(()=>drawFleetIcon(cv,f));
-    const sel=()=>{ selectCraft(el.dataset.code); setView("craft"); startCycle(); };  // track → show the model, reset the timer
+    const sel=()=>{ selectCraft(el.dataset.code); setView("craft"); startCycle(); };  // select + restart the cycle timer
     el.addEventListener("click",sel);
     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();sel();}});
   });
@@ -605,11 +587,11 @@ function startCycle(){
   cycleTimer=setInterval(()=>{
     let i=list.findIndex(f=>f.code===(currentCraft&&currentCraft.code));
     i=(i+1)%list.length; selectCraft(list[i].code);
-  },15000);   // shuffle to the next satellite every 15s
+  },15000);   // next craft every 15s
 }
 
-/* =====================  LIVE DSN (NASA Deep Space Network Now)  ===================== */
-// Real-time: which antennas are talking to which spacecraft, + range / rate / RTLT.
+// --- DSN Now (live) ---
+// which antennas are talking to which craft, plus range / data-rate / round-trip time
 let dsnLive={}, dsnSignals=0;
 const AU_KM=1.495978707e8;
 function fmtRTLT(sec){ if(!isFinite(sec)||sec<=0)return "—"; const m=Math.round(sec/60); return m<60?m+"m":Math.floor(m/60)+"h "+(m%60)+"m"; }
@@ -646,7 +628,7 @@ async function loadDSN(){
   }
 }
 
-/* =====================  NASA DONKI — REAL CMEs · FLARES · Kp  ===================== */
+// --- DONKI (live CMEs / flares / Kp) ---
 const fmtAgo=ms=>{const h=Math.floor(ms/36e5),m=Math.floor(ms/6e4)%60;return `${String(h).padStart(2,"0")}H ${String(m).padStart(2,"0")}M`;};
 function parseSrcLon(loc){ const m=/([EW])(\d+)/.exec(loc||""); return m?(m[1]==="W"?1:-1)*parseInt(m[2]):0; }
 function setSolarStatus(s){ solarStatus=s; const el=$("#map-status"); if(el)el.textContent=s; }
@@ -657,7 +639,7 @@ async function loadDONKI(){
     .then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});
   try{
     const [cmes,flrs,gsts]=await Promise.all([get("CME").catch(()=>[]),get("FLR").catch(()=>[]),get("GST").catch(()=>[])]);
-    // CMEs → physical plume params (most-accurate analysis per event)
+    // one plume per CME, using its flagged most-accurate analysis
     const evs=(cmes||[]).map(c=>{
       const as=(c.cmeAnalyses||[]); const a=as.find(v=>v.isMostAccurate)||as[0]; if(!a)return null;
       const eta=((a.enlilList||[])[0]||{}).estimatedShockArrivalTime||null;
@@ -665,9 +647,9 @@ async function loadDONKI(){
         start:Date.parse(c.startTime), halo:a.longitude==null||(a.halfAngle||0)>=60, eta };
     }).filter(Boolean);
     if(evs.length)buildCmePlumes(evs);
-    // flares → rim sparks + the freshest one for the status line
+    // keep the last 10 flares for the limb sparks + status line
     solFlares=(flrs||[]).slice(-10).map(f=>({lon:parseSrcLon(f.sourceLocation),cls:f.classType||"C",t:Date.parse(f.peakTime||f.beginTime)}));
-    // status line, SENTRY-style: latest flare · next CME arrival · max Kp (24 h)
+    // status line: latest flare · next CME ETA · max Kp over 24h
     const bits=[];
     const lastF=solFlares[solFlares.length-1];
     if(lastF&&isFinite(lastF.t))bits.push(`${lastF.cls} FLARE ${fmtAgo(Date.now()-lastF.t)} AGO`);
@@ -682,7 +664,7 @@ async function loadDONKI(){
   }
 }
 
-/* =====================  THREE.JS — WIREFRAME SPACECRAFT HERO  ===================== */
+// --- Three.js: wireframe spacecraft hero ---
 const canvas=$("#scene");
 let renderer=null;
 try{ renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
@@ -701,15 +683,14 @@ const cam=new THREE.PerspectiveCamera(46,1,0.1,100);
 const craftHolder=new THREE.Group(); scene.add(craftHolder);
 craftHolder.position.set(0.7,-0.15,0);
 const craftPivot=new THREE.Group(); craftHolder.add(craftPivot);
-// faint green ecliptic arcs around the craft (retrofuturist grid lines, not orange rings)
+// two faint green rings around the craft
 [[3.4,0.46],[2.9,0.5]].forEach(([rad,tilt],i)=>{
   const ring=new THREE.Mesh(new THREE.TorusGeometry(rad,0.008,3,128),
     new THREE.MeshBasicMaterial({color:0x47ffa9,transparent:true,opacity:i?0.10:0.17,
       blending:THREE.AdditiveBlending,depthWrite:false}));
   ring.rotation.x=Math.PI*tilt; craftHolder.add(ring);
 });
-// subliminal green tint centred on the scene — barely perceptible, like SENTRY's:
-// you only notice it as a faint warmth in the black, never as a circle
+// very faint green wash behind the craft (low alpha so it reads as warmth, not a disc)
 const glowTex=(()=>{ const c=document.createElement("canvas"); c.width=c.height=256;
   const g=c.getContext("2d"), gr=g.createRadialGradient(128,128,0,128,128,128);
   gr.addColorStop(0,"rgba(71,255,169,.055)"); gr.addColorStop(.4,"rgba(71,255,169,.028)");
@@ -719,7 +700,7 @@ const craftGlow=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,transpare
   opacity:0.6,blending:THREE.AdditiveBlending,depthWrite:false}));
 craftGlow.scale.set(17,17,1); craftPivot.add(craftGlow);
 
-/* ---- 3D INTERACTIVE GALAXIES — point clouds you can drag to orbit ---- */
+// --- 3D galaxies (WebGL point clouds) ---
 const galaxyHolder=new THREE.Group(); scene.add(galaxyHolder); galaxyHolder.visible=false;
 galaxyHolder.position.set(0.4,-0.05,0);
 const galaxyPivot=new THREE.Group(); galaxyHolder.add(galaxyPivot);
@@ -728,26 +709,26 @@ function buildGalaxy3D(idx){
   if(galaxy3D){ galaxyPivot.remove(galaxy3D);
     galaxy3D.traverse(o=>{o.geometry&&o.geometry.dispose();o.material&&o.material.dispose();}); galaxy3D=null; }
   const gal=GALAXIES[idx]||GALAXIES[0], hue=(gal.hue||[255,205,130]).map(c=>c/255);
-  // mirrors the 2D thumbnail (drawMiniGalaxy): same arm winding, colour = hue·brightness falloff
+  // same shape rules as the 2D drawGalaxy, extruded into a 3D point cloud
   const arms=gal.arms||2, N=6500, R=3.0, pos=new Float32Array(N*3), col=new Float32Array(N*3), rnd=Math.random;
   for(let i=0;i<N;i++){
     let x=0,y=0,z=0,b;
-    if(gal.type==="elliptical"){                       // 3D ellipsoidal swarm
+    if(gal.type==="elliptical"){                       // ellipsoidal swarm
       const rr=Math.pow(rnd(),0.5), u=rnd()*2-1, th=rnd()*6.2832, s=Math.sqrt(1-u*u);
       x=rr*R*s*Math.cos(th); z=rr*R*s*Math.sin(th); y=rr*R*u*0.62; b=1-rr*0.8;
     } else if(gal.type==="irregular"){                  // clumpy blob
       const rr=Math.pow(rnd(),0.5), th=rnd()*6.2832;
       x=Math.cos(th)*rr*R*(0.6+rnd()*0.6); z=Math.sin(th)*rr*R*(0.5+rnd()*0.5);
       y=(rnd()-0.5)*R*0.32; b=1-rr*0.5;
-    } else {                                            // spiral / barred / edge-on disk (matches thumbnail)
+    } else {                                            // spiral / barred / edge-on disk
       const arm=i%arms, rr=Math.pow(rnd(),0.6);
-      const a=arm*(6.2832/arms)+rr*(gal.type==="edge"?0.5:4);            // same winding as drawMiniGalaxy
-      const w=(rnd()-0.5)*(gal.type==="edge"?0.12:0.36)*(1-rr*0.35);     // arm width → perpendicular scatter
+      const a=arm*(6.2832/arms)+rr*(gal.type==="edge"?0.5:4);
+      const w=(rnd()-0.5)*(gal.type==="edge"?0.12:0.36)*(1-rr*0.35);     // scatter perpendicular to the arm
       x=(Math.cos(a)*rr + Math.cos(a+1.5708)*w)*R;
       z=(Math.sin(a)*rr + Math.sin(a+1.5708)*w)*R;
       y=(rnd()-0.5)*R*(gal.type==="edge"?0.04:0.11)*(1-rr*0.4); b=1-rr*0.7;
     }
-    const cr=Math.hypot(x,y,z)/R, core=cr<0.13?0.55:0;                   // bright nucleus like the thumbnail
+    const cr=Math.hypot(x,y,z)/R, core=cr<0.13?0.55:0;                   // brighten the core
     pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;
     col[i*3]=Math.min(1,hue[0]*b+core); col[i*3+1]=Math.min(1,hue[1]*b+core); col[i*3+2]=Math.min(1,hue[2]*b+core);
   }
@@ -758,7 +739,7 @@ function buildGalaxy3D(idx){
     blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true});
   galaxy3D=new THREE.Group();
   galaxy3D.add(new THREE.Points(geo,mat));
-  // soft central glow (matches the thumbnail's radial gradient) + bright white nucleus
+  // soft central glow sphere + a small bright nucleus
   galaxy3D.add(new THREE.Mesh(new THREE.SphereGeometry(0.9,16,16),
     new THREE.MeshBasicMaterial({color:new THREE.Color(hue[0],hue[1],hue[2]),transparent:true,opacity:0.05,
       blending:THREE.AdditiveBlending,depthWrite:false})));
@@ -769,21 +750,21 @@ function buildGalaxy3D(idx){
 const wire=(geo,col=0x47ffa9,op=0.9)=>new THREE.Mesh(geo,
   new THREE.MeshBasicMaterial({color:col,wireframe:true,transparent:true,opacity:op}));
 let craftModel=null;
-// Detailed wireframe silhouettes per craft: paraboloid-mesh dishes, truss booms,
-// segmented solar arrays, RTG stacks — much closer to the real NASA structures.
+// Procedural wireframe per craft — dishes, booms, arrays, RTGs. Built from a handful
+// of primitive helpers below. This is the instant fallback before any GLB loads.
 function buildCraftModel(type){
   if(craftModel){craftPivot.remove(craftModel); craftModel.traverse(o=>{o.geometry&&o.geometry.dispose();o.material&&o.material.dispose();});}
   const g=new THREE.Group();
   const add=m=>{g.add(m);return m;};
   const MINT=0x47ffa9,GREEN=0x54ff8a,BLUE=0x5f7bff,CYAN=0x39d6c8,ORANGE=0xff6a1f,GOLD=0xf0b32a;
-  // paraboloid high-gain dish → concentric rings + radial spokes, like the NASA CAD
+  // paraboloid dish, as a lathe of a squared profile
   const dish=(rad,depth,z,radial=26,col=MINT)=>{
     const pts=[]; for(let i=0;i<=7;i++){const r=rad*i/7; pts.push(new THREE.Vector2(Math.max(0.001,r), depth*(i/7)*(i/7)));}
     const d=add(wire(new THREE.LatheGeometry(pts,radial),col,0.85)); d.position.set(0,0,z); d.rotation.x=-Math.PI/2;
     const horn=add(wire(new THREE.ConeGeometry(0.06,0.26,6),col,0.8)); horn.position.set(0,0,z+depth+0.2); horn.rotation.x=Math.PI/2;
     return d;
   };
-  // truss boom: thin cylinder w/ many height segments → lattice feel
+  // boom: thin cylinder with lots of height segments so the wireframe reads as a lattice
   const truss=(len,x,y,z,rz,r=0.03,col=MINT)=>{ const b=add(wire(new THREE.CylinderGeometry(r,r,len,4,Math.max(6,Math.round(len*5))),col,0.8));
     b.position.set(x,y,z); b.rotation.z=rz; return b; };
   const box=(w,h,d,x,y,z,col=MINT)=>{ const b=add(wire(new THREE.BoxGeometry(w,h,d,Math.max(1,Math.round(w*2.5)),Math.max(1,Math.round(h*2.5)),Math.max(1,Math.round(d*2.5))),col,0.85)); b.position.set(x,y,z); return b; };
@@ -854,22 +835,22 @@ function buildCraftModel(type){
   craftModel=g; craftPivot.add(g);
 }
 
-/* ---- OPTIONAL: load a real NASA GLB/GLTF CAD model, wireframe-ified, with the
- *      procedural model above as an instant fallback. To enable, drop a .glb in
- *      /models and add  model:"models/voyager.glb"  to that craft in config.js. ---- */
+// If a craft has model:"models/x.glb" in config, load it and swap it in over the
+// procedural build. The procedural one stays up until (and unless) the GLB loads.
 const gltfLoader = (renderer && typeof THREE.GLTFLoader==="function") ? new THREE.GLTFLoader() : null;
 let modelToken = 0;
 function buildCraft(f){
   const type = (typeof f==="string") ? f : ((f&&f.type)||"orbiter");
-  buildCraftModel(type);                         // procedural model shows instantly
+  buildCraftModel(type);
   const url = (f && typeof f==="object") ? f.model : null;
   if(url && gltfLoader){
-    const tok = ++modelToken;                     // guards against fast craft-switching
+    // token so a fast craft-switch discards a GLB that finishes loading late
+    const tok = ++modelToken;
     gltfLoader.load(url,
       g => { if(tok===modelToken) applyGLB(g.scene || (g.scenes&&g.scenes[0])); },
       undefined,
       err => console.warn("GLB model load failed — keeping procedural model:", url, err));
-  } else { modelToken++; }                         // cancel any in-flight GLB load
+  } else { modelToken++; }                         // invalidate any in-flight load
 }
 function applyGLB(obj){
   if(!obj) return;
@@ -877,8 +858,7 @@ function applyGLB(obj){
   const lineMat=new THREE.LineBasicMaterial({color:MINT,transparent:true,opacity:0.9});
   const grp=new THREE.Group();
   obj.updateMatrixWorld(true);
-  // render CREASE EDGES (structural blueprint lines) rather than raw triangle
-  // wireframe — cleaner on detailed CAD meshes and closer to the SENTRY look.
+  // draw crease edges, not the full triangle wireframe — much cleaner on dense CAD meshes
   obj.traverse(o=>{ if(o.isMesh && o.geometry){
     const seg=new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry,24), lineMat);   // 24° crease threshold
     seg.applyMatrix4(o.matrixWorld); grp.add(seg);
@@ -886,7 +866,7 @@ function applyGLB(obj){
   grp.updateMatrixWorld(true);
   const bx=new THREE.Box3().setFromObject(grp), size=new THREE.Vector3(), ctr=new THREE.Vector3();
   bx.getSize(size); bx.getCenter(ctr);
-  const s = 3.2/(Math.max(size.x,size.y,size.z)||1);   // normalise so any model fills the frame
+  const s = 3.2/(Math.max(size.x,size.y,size.z)||1);   // scale to a fixed size regardless of source units
   grp.scale.setScalar(s); grp.position.set(-ctr.x*s,-ctr.y*s,-ctr.z*s);
   if(craftModel){ craftPivot.remove(craftModel);
     craftModel.traverse(o=>{ o.geometry&&o.geometry.dispose&&o.geometry.dispose(); }); }
@@ -909,15 +889,15 @@ function frame(){
   if(spin)targY+=0.0045;
   curY+=(targY-curY)*0.08; curX+=(targX-curX)*0.08; curZ+=(targZ-curZ)*0.08;
   craftPivot.rotation.y=curY; craftPivot.rotation.x=curX;
-  galaxyPivot.rotation.y=curY; galaxyPivot.rotation.x=curX;   // same drag orbits the galaxy
+  galaxyPivot.rotation.y=curY; galaxyPivot.rotation.x=curX;   // craft + galaxy share the rotation
   craftHolder.children.forEach(c=>{ if(c!==craftPivot) c.rotation.z+=0.0009; });
   cam.position.set(0,0,curZ); cam.lookAt(0,0,0);
   renderer.render(scene,cam);
 }
 buildCraft(CONFIG.fleet.find(x=>x.type==="newhorizons") || {type:"newhorizons"});
-if(renderer)frame();   // HUD + stars below run regardless of WebGL
+if(renderer)frame();   // 2D HUD + stars still run even without WebGL
 
-/* =====================  DOSSIER  ===================== */
+// --- project dossier overlay ---
 const dossier=$("#dossier");
 function openDossier(p){
   $("#d-idx").textContent="OBJ-"+String(p._i+1).padStart(3,"0");
@@ -936,7 +916,7 @@ function openDossier(p){
 $("#d-close").addEventListener("click",()=>dossier.classList.remove("open"));
 addEventListener("keydown",e=>{if(e.key==="Escape"){dossier.classList.remove("open");closePanel();}});
 
-/* =====================  SECTION OVERLAYS  ===================== */
+// --- section overlays (about / research / projects / contact) ---
 const panel=$("#panel"), scrim=$("#panel-scrim"), pBody=$("#p-body");
 let lastFocus=null;
 const SECTIONS={
@@ -1027,7 +1007,7 @@ function closePanel(){
 $("#p-close").addEventListener("click",closePanel);
 scrim.addEventListener("click",closePanel);
 
-/* =====================  LIVE NASA NeoWs FEED  ===================== */
+// --- NeoWs feed (live close approaches) ---
 const MON=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 const SAMPLE={tracked:31,pha:4,src:"SAMPLE",objs:[
   {des:"2005 QC5",date:"2026-07-09",ld:79.24,v:15.2,haz:false},
@@ -1055,7 +1035,7 @@ function normalizeNeoWs(j){
   objs.sort((a,b)=>a.date.localeCompare(b.date)||a.ld-b.ld);
   return {objs, tracked:j.element_count||objs.length, pha:objs.filter(o=>o.haz).length, src:"NASA NeoWs"};
 }
-/* NEAREST APPROACH — the closest upcoming miss from the live feed, SENTRY-box style */
+// fills the NEAREST APPROACH box with the closest upcoming pass
 function updateNearestApproach(objs){
   const now=Date.now();
   const up=objs.filter(o=>(o.epoch||Date.parse(o.date)||0)>=now-864e5);
@@ -1076,8 +1056,8 @@ function updateNearestApproach(objs){
 }
 function renderFeed(data){
   const {objs,tracked,pha,src}=data;
-  neoObjs=objs; rebuildNeoScatter();                       // feed both maps
-  updateNearestApproach(objs);                             // SENTRY nearest-approach box
+  neoObjs=objs; rebuildNeoScatter();                       // used by both maps
+  updateNearestApproach(objs);
   const orb=$("#orb-n"); if(orb)orb.textContent=String(objs.length).padStart(2,"0");
   $("#t-total").textContent=String(tracked).padStart(2,"0");
   $("#t-plotted").textContent=String(Math.min(objs.length,30)).padStart(2,"0");
@@ -1103,32 +1083,28 @@ async function loadNASA(){
     renderFeed(SAMPLE);
     $("#feed-hd").innerHTML='▸ NASA NeoWs · OFFLINE · SAMPLE <span class="live">● LIVE</span>';
   }
-  const box=$("#feedbox"); let fs=0;   // gentle auto-scroll for a live feel
+  const box=$("#feedbox"); let fs=0;   // slow auto-scroll through the list
   if(!reduce)setInterval(()=>{ if(box.scrollHeight>box.clientHeight+2){ fs+=0.4;
     if(fs>=box.scrollHeight-box.clientHeight)fs=0; box.scrollTop=fs; }},40);
 }
-renderFeed(SAMPLE);   // instant placeholder, replaced when live data lands
+renderFeed(SAMPLE);   // show sample data immediately; loadNASA() replaces it
 loadNASA();
-setInterval(()=>updateNearestApproach(neoObjs),30000);   // keep the ETA counting down
+setInterval(()=>updateNearestApproach(neoObjs),30000);   // tick the ETA down
 
-/* =====================  AUDIO / MISSION-TIME / LOCAL CLOCK  ===================== */
-/* FISHEYE toggle — a retrofuturist barrel/CRT bulge over the whole page */
+// --- retro CRT fisheye ---
 const warp=$("#warp"), feMap=document.getElementById("fisheye-map"), feDisp=document.getElementById("fisheye-disp");
-// Two user-facing knobs, edited in config.js → CONFIG.retro (safe fallbacks here):
-//   fisheyeBulge = how much it pops toward you · fisheyeSpan = sphere size vs screen
-//   (>1 pushes the sphere's rim OFF-screen, so only its gentle centre shows).
+// knobs live in config.js → CONFIG.retro; these are the fallbacks. See makeFisheyeMap.
 const _RETRO   = (typeof CONFIG!=="undefined" && CONFIG.retro) || {};
 const FE_BULGE = Number.isFinite(_RETRO.fisheyeBulge) ? _RETRO.fisheyeBulge : 0.40;
 const FE_SPAN  = Number.isFinite(_RETRO.fisheyeSpan)  ? _RETRO.fisheyeSpan  : 1.5;
 const FE_FILL  = Number.isFinite(_RETRO.fisheyeFill)  ? _RETRO.fisheyeFill  : 1.2;
 const FE_FIT   = Number.isFinite(_RETRO.fisheyeFit)   ? _RETRO.fisheyeFit   : 0.88;
 function makeFisheyeMap(size=512,span=FE_SPAN){
-  // CONVEX CRT-TUBE bulge that pops OUT toward the viewer: the centre is magnified /
-  // closest and straight lines bow outward (classic barrel). This uses a SPHERICAL
-  // dome mapping — the displacement peaks in the mid-region and tapers at the rim (the
-  // atan saturates), which is what makes it convex/pop-out rather than a pincushion
-  // "pop-in". `span` = sphere size vs screen (bigger = gentler, rim further off-screen).
-  // Depth (how far it pops) is applied later via the feDisp scale.
+  // Builds the displacement map for the SVG feDisplacementMap. Spherical (atan) mapping,
+  // NOT a polynomial r² barrel: the displacement peaks mid-radius and eases off at the
+  // rim, which is what makes the screen bulge OUT (convex) instead of pinching in.
+  // Don't "simplify" this to r² — that inverts the effect. span = sphere size vs screen
+  // (bigger = gentler); pop depth is set separately via feDisp scale.
   const c=document.createElement("canvas"); c.width=c.height=size; const x=c.getContext("2d");
   const img=x.createImageData(size,size), d=img.data, H=Math.PI/2;
   for(let y=0;y<size;y++)for(let xx=0;xx<size;xx++){
@@ -1136,8 +1112,8 @@ function makeFisheyeMap(size=512,span=FE_SPAN){
     const un=u/span, vn=v/span, rn=Math.hypot(un,vn);
     let dx=0,dy=0;
     if(rn>1e-4){ const rc=Math.min(rn,0.999), w=Math.sqrt(1-rc*rc);
-      dx=span*(Math.atan2(un,w)/H - un);   // spherical longitude → magnify toward centre
-      dy=span*(Math.atan2(vn,w)/H - vn);   // spherical latitude
+      dx=span*(Math.atan2(un,w)/H - un);   // longitude
+      dy=span*(Math.atan2(vn,w)/H - vn);   // latitude
     }
     d[i]=Math.max(0,Math.min(255,Math.round(128+dx*127)));
     d[i+1]=Math.max(0,Math.min(255,Math.round(128+dy*127)));
@@ -1148,12 +1124,12 @@ function makeFisheyeMap(size=512,span=FE_SPAN){
 (function initFisheyeMap(){ const url=makeFisheyeMap();
   feMap.setAttribute("href",url); feMap.setAttributeNS("http://www.w3.org/1999/xlink","xlink:href",url); })();
 function setRetro(on){
-  document.body.classList.toggle("retro",on);           // CRT scanlines / roll / shudder / flicker
-  warp.classList.toggle("fisheye",on);                  // bulge the ENTIRE screen, HUD text included
+  document.body.classList.toggle("retro",on);           // scanlines / roll / flicker (CSS)
+  warp.classList.toggle("fisheye",on);                  // apply the bulge filter to the whole screen
   feDisp.setAttribute("scale", on?String(Math.round(Math.min(innerWidth,innerHeight)*FE_BULGE)):"0");
-  // OVERSCAN the space background so it reaches the tube's edges (no interior gaps).
+  // fill: overscan the background so it still covers the corners after the bulge
   document.documentElement.style.setProperty("--fe-fill", on?String(FE_FILL):"1");
-  // FIT: shrink the whole CRT (#crt-screen) so it sits INSIDE a black frame, TV-style.
+  // fit: shrink the whole screen so it sits inside a black frame instead of edge-to-edge
   document.documentElement.style.setProperty("--fe-fit", on?String(FE_FIT):"1");
 }
 $("#fisheye").addEventListener("click",e=>{
@@ -1164,24 +1140,23 @@ $("#fisheye").addEventListener("click",e=>{
 });
 addEventListener("resize",()=>{ if(document.body.classList.contains("retro"))setRetro(true); });
 
-/* ── CRT pointer remap ─────────────────────────────────────────────────────
-   The fisheye is a CSS filter: it bends the PIXELS but the browser still hit-tests
-   the un-bent layout, so hover/clicks would land where a button *was*, not where you
-   SEE it. So we map the cursor through the exact same displacement to find the element
-   under the visible pixel, drive a `.crt-hover` class (native :hover is gated off in
-   retro), and redirect clicks. Identity when retro is off, so it's a no-op then. */
+// The fisheye is a CSS filter, so it moves pixels but the browser still hit-tests the
+// original layout — hover/clicks would land where a button was, not where you see it.
+// So we run the cursor through the same displacement, find the element under the
+// visible pixel, apply .crt-hover (native :hover is disabled in retro), and re-route
+// the click there. No-op when retro is off.
 const CRT_ACT = ".navcard,.viewsw,.hud-btn,#rail a,.fcard,.gcard,a[href],button,[role='button']";
 function crtMapPoint(cx,cy){
   if(!document.body.classList.contains("retro")) return {x:cx,y:cy};
   const S=parseFloat(feDisp.getAttribute("scale"))||0;
   if(!S) return {x:cx,y:cy};
   const W=innerWidth, H=innerHeight, fit=FE_FIT, span=FE_SPAN, HH=Math.PI/2;
-  const wx=(cx-W/2)/fit + W/2, wy=(cy-H/2)/fit + H/2;      // undo the FIT scale → #warp-local px
+  const wx=(cx-W/2)/fit + W/2, wy=(cy-H/2)/fit + H/2;      // undo the fit scale first
   const u=(wx/W)*2-1, v=(wy/H)*2-1, un=u/span, vn=v/span, rn=Math.hypot(un,vn);
   let dxn=0,dyn=0;
   if(rn>1e-4){ const rc=Math.min(rn,0.999), w=Math.sqrt(1-rc*rc);
     dxn=span*(Math.atan2(un,w)/HH-un); dyn=span*(Math.atan2(vn,w)/HH-vn); }
-  // displacement (same as makeFisheyeMap) in #warp px → back to viewport px (re-apply FIT)
+  // apply the same displacement as makeFisheyeMap, then re-apply the fit scale
   return { x:cx + S*dxn*0.498*fit, y:cy + S*dyn*0.498*fit };
 }
 function crtActionable(el){ return el && el.closest ? el.closest(CRT_ACT) : null; }
@@ -1203,8 +1178,8 @@ addEventListener("click",e=>{
   if(!(e.target.closest && e.target.closest("#crt-screen"))) return;
   const p=crtMapPoint(e.clientX,e.clientY);
   const hit=crtActionable(document.elementFromPoint(p.x,p.y));
-  if(hit && hit!==crtActionable(e.target)){        // the pixel you clicked ≠ the layout target
-    e.preventDefault(); e.stopPropagation(); hit.click();   // fire the one you actually see
+  if(hit && hit!==crtActionable(e.target)){        // visible target differs from the layout hit
+    e.preventDefault(); e.stopPropagation(); hit.click();   // click the one under the cursor
   }
 },true);
 
@@ -1214,7 +1189,7 @@ mtPlay.textContent=mtPlaying?"❚❚":"▶";
 mtPlay.addEventListener("click",()=>{mtPlaying=!mtPlaying;mtPlay.textContent=mtPlaying?"❚❚":"▶";});
 (function mtTick(){ if(mtPlaying)mtProg=(mtProg+0.00016)%1; mtHead.style.left=(mtProg*100)+"%"; requestAnimationFrame(mtTick); })();
 
-// local time (the viewer's own timezone) with its short zone label
+// viewer's local time + short zone label
 const TZ=(()=>{try{return new Date().toLocaleTimeString("en-US",{timeZoneName:"short"}).split(" ").pop();}catch(e){return "LOCAL";}})();
 function tickClock(){
   const d=new Date(), p=n=>String(n).padStart(2,"0");
@@ -1224,16 +1199,16 @@ function tickClock(){
 }
 setInterval(tickClock,1000); tickClock();
 
-/* =====================  INIT + BOOT  ===================== */
+// --- init + boot ---
 renderFleet();
 selectCraft("NH");
-// Phones open on the GALAXY view (the left switcher is hidden ≤760px, matching the CSS);
-// desktop opens on the craft and auto-cycles the fleet.
+// phones start on the galaxy view (the switcher is hidden ≤760px); desktop starts on
+// the craft and auto-cycles the fleet
 const mobileStart = matchMedia("(max-width:760px)").matches;
 setView(mobileStart ? "galaxy" : "craft");
 if(!mobileStart) startCycle();
-loadDSN(); setInterval(loadDSN, 30000);   // refresh live DSN every 30s
-loadDONKI(); setInterval(loadDONKI, 20*60*1000);   // real CMEs/flares/Kp, refreshed 20-min
+loadDSN(); setInterval(loadDSN, 30000);
+loadDONKI(); setInterval(loadDONKI, 20*60*1000);
 
 const boot=$("#boot");
 const bootLines=[
@@ -1249,7 +1224,7 @@ const bootLines=[
 let bi=0;
 function bootStep(){
   if(bi>=bootLines.length){ setTimeout(()=>{boot.classList.add("done");
-    crtPowerOn();                                                  // CRT power-on flash
+    crtPowerOn();
     setTimeout(()=>boot.style.display="none",800);},450); return; }
   const [txt,cls]=bootLines[bi++];
   const el=document.createElement("div"); el.className="l";
@@ -1258,11 +1233,12 @@ function bootStep(){
   if(bi===bootLines.length){const c=document.createElement("span");c.className="cur";boot.appendChild(c);}
   setTimeout(bootStep, reduce?60:150+Math.random()*140);
 }
-// CRT power-on: plays the tube power-on flash (full boot only on the first visit of a tab session;
-// a quick flash on every return, incl. back/forward from the recruiter page)
+// power-on flash. Full boot sequence runs once per tab session (see sessionStorage
+// below); every later return just replays this flash. The offsetWidth read restarts
+// the CSS animation.
 function crtPowerOn(){ document.body.classList.remove("crt-boot"); void document.body.offsetWidth;
   document.body.classList.add("crt-boot"); setTimeout(()=>document.body.classList.remove("crt-boot"),1700); }
-addEventListener("pageshow",e=>{ if(e.persisted && !reduce) crtPowerOn(); });   // restored from bfcache
+addEventListener("pageshow",e=>{ if(e.persisted && !reduce) crtPowerOn(); });   // bfcache restore
 if(reduce){ boot.style.display="none"; }
 else if(!sessionStorage.getItem("mc-booted")){ sessionStorage.setItem("mc-booted","1"); bootStep(); }
 else { boot.style.display="none"; crtPowerOn(); }

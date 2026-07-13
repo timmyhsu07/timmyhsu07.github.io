@@ -27,16 +27,15 @@
 </head>
 <body>
 
-<!-- #crt-screen is the whole CRT "tube": in retro mode it scales DOWN to FIT inside a
-     black frame (fit, not fill) with rounded corners, like a CRT TV sitting in its bezel.
-     The fisheye bulge lives on #warp; the scanlines/bezel overlay on #retro-fx. -->
+<!-- #crt-screen = the whole screen. Retro mode scales it down into a black frame.
+     The bulge filter is on #warp; scanlines/bezel are on #retro-fx. -->
 <div id="crt-screen">
 <div id="warp">
 <div id="warp-bg">
-<div id="grid"></div>            <!-- faint neon-green reference grid -->
-<canvas id="stars"></canvas>     <!-- twinkling starfield (2D) -->
-<canvas id="scene"></canvas>     <!-- wireframe spacecraft hero (WebGL) -->
-<canvas id="viewport"></canvas>  <!-- orbital-bodies / galaxy center views (2D) -->
+<div id="grid"></div>            <!-- reference grid -->
+<canvas id="stars"></canvas>     <!-- starfield -->
+<canvas id="scene"></canvas>     <!-- WebGL craft / 3D galaxy -->
+<canvas id="viewport"></canvas>  <!-- 2D map / galaxy -->
 </div>
 
 <div class="fx" id="scan"></div>
@@ -48,7 +47,7 @@
 
 <div id="hud">
 
-  <!-- ================= LEFT SIDE: view switchers + craft + fleet + feed ================= -->
+  <!-- left column: view switchers + craft + fleet + feed -->
   <div id="sidecol">
     <section class="panel viewsw on" data-view="craft" tabindex="0" role="button" aria-label="Satellite view">
       <span class="plabel">CRAFT <i class="caret">▾</i></span>
@@ -73,7 +72,7 @@
       <div class="pv-cap"><span class="gx-meta"><b id="gx-name">MILKY WAY</b><i id="gx-dist">27,000 LY TO CORE</i></span><span class="open">VIEW ▸</span></div>
     </section>
 
-    <!-- fleet lives here now; only shown while the satellite view is active. collapsed by default -->
+    <!-- fleet roster; shown only in craft view, collapsed by default -->
     <section class="panel collapsed" id="fleet">
       <span class="plabel">FLEET <i class="caret">▾</i></span>
       <div class="pbody">
@@ -85,7 +84,7 @@
       </div>
     </section>
 
-    <!-- galaxies roster; only shown while the galaxy view is active. collapsed by default -->
+    <!-- galaxy roster; shown only in galaxy view, collapsed by default -->
     <section class="panel collapsed" id="galaxies">
       <span class="plabel">GALAXIES <i class="caret">▾</i></span>
       <div class="pbody">
@@ -94,7 +93,7 @@
       </div>
     </section>
 
-    <!-- the live NeoWs close-approach feed; clicking it opens the GEOCENTRIC EARTH MAP -->
+    <!-- NeoWs feed; clicking it opens the Earth-centered map -->
     <section class="panel viewsw collapsed" id="feedpanel" data-view="geo" tabindex="0" role="button" aria-label="Geocentric earth map view">
       <span class="plabel">SOURCE / OBJECT FEED <i class="caret">▾</i></span>
       <div class="pbody">
@@ -103,7 +102,7 @@
       </div>
     </section>
 
-    <!-- DSN ground-station status + tracking counters, docked beside the craft picker -->
+    <!-- DSN status + tracking counters -->
     <div id="dsn-side">
       <div class="dsnline" id="dsnline">◉ DSN · SYNCING…</div>
       <div class="counts">
@@ -114,7 +113,7 @@
   </div>
 
 
-  <!-- ================= TOP-RIGHT: title / identity ================= -->
+  <!-- title / identity (top right) -->
   <header class="layer" id="id">
     <h1 id="title"><em id="k-name">NAME</em><span id="k-mission">MISSION</span></h1>
     <div class="id-cta"><a class="hud-btn" id="recruiter" href="recruiter.html">▸ RECRUITER LOOK</a></div>
@@ -122,8 +121,8 @@
     <div class="stamp" id="stamp">—</div>
   </header>
 
-  <!-- SENTRY-style map chrome — title chip · layer toggles · nearest-approach box.
-       Shown only on the heliocentric / geocentric map views (setView drives it). -->
+  <!-- map overlay — title chip, layer toggles, nearest-approach box.
+       Shown only on the map views (setView toggles it). -->
   <div id="map-ui" hidden>
     <div class="map-chip" id="map-chip">HELIOCENTRIC SOLAR MAP</div>
     <div class="map-toggles" id="map-toggles">
@@ -145,7 +144,7 @@
     <div class="map-hint">DRAG · ORBIT&nbsp;&nbsp;|&nbsp;&nbsp;SCROLL · ZOOM</div>
   </div>
 
-  <!-- ================= BOTTOM: mission-time bar ================= -->
+  <!-- mission-time bar -->
   <section class="layer" id="mtime">
     <button type="button" class="hud-btn sq" id="mt-play" aria-label="Play/pause">❚❚</button>
     <button type="button" class="hud-btn" id="fisheye" aria-pressed="false" title="Toggle retro CRT look"><i class="led"></i> (RETRO LOOK)</button>
@@ -154,8 +153,8 @@
     <div class="mt-clock" id="clock">--:--:--</div>
   </section>
 
-  <!-- ============ BOTTOM-CENTER: section nav (inside #hud so it scales/insets with the
-       mission bar in retro — otherwise the two overlap) ============ -->
+  <!-- section nav. Keep this inside #hud so it scales with the mission bar in retro,
+       otherwise the two overlap. -->
   <nav class="layer" id="nav" aria-label="Sections">
     <button type="button" class="navcard" data-sec="about" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">ABOUT ME</span></button>
     <button type="button" class="navcard" data-sec="research" aria-haspopup="dialog"><canvas class="nav-ic"></canvas><span class="nc-label">EXPERIENCE</span></button>
@@ -165,21 +164,21 @@
 </div><!-- /#hud -->
 </div><!-- /#warp -->
 
-<!-- one-time CRT power-on flash played when the boot sequence finishes -->
+<!-- power-on flash -->
 <div id="crt-boot" aria-hidden="true"></div>
 
-<!-- retro CRT / old-TV overlay (outside #warp so scanlines stay crisp) -->
+<!-- CRT overlay. Outside #warp so it isn't bulged by the fisheye. -->
 <div id="retro-fx" aria-hidden="true">
-  <div class="crt-grille"></div>   <!-- RGB phosphor aperture grille -->
-  <div class="crt-scan"></div>     <!-- horizontal scanlines -->
-  <div class="crt-glass"></div>    <!-- curved-glass vignette + glare + chromatic edges -->
+  <div class="crt-grille"></div>   <!-- aperture grille -->
+  <div class="crt-scan"></div>     <!-- scanlines -->
+  <div class="crt-glass"></div>    <!-- vignette + glare -->
 </div>
 </div><!-- /#crt-screen -->
 
-<!-- floating node tooltip -->
+<!-- hover tooltip -->
 <div id="tip"><div class="nm"></div><div class="cat"></div></div>
 
-<!-- project detail dossier -->
+<!-- project dossier -->
 <div id="dossier">
   <div class="top">
     <div><div class="idx" id="d-idx">OBJ-000</div><h3 id="d-name"></h3><div class="cls" id="d-cls"></div></div>
@@ -210,7 +209,7 @@
 
 <div id="boot"></div>
 
-<!-- FISHEYE barrel-distortion filter (displacement map injected by JS) -->
+<!-- fisheye filter; makeFisheyeMap() sets the displacement map at runtime -->
 <svg id="fe-svg" width="0" height="0" aria-hidden="true" focusable="false">
   <defs>
     <filter id="fisheye-filter" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
