@@ -1,11 +1,11 @@
 /* CONFIG — everything editable lives here. Both index.html and recruiter.html read
    this one object, so a change shows up in both. Edit values, not keys. */
 const CONFIG = {
-  name:      "TIMOTHY HSU",                     // big serif name
-  handle:    "@timmyhsu07",                     // (credit line is hidden by default)
-  role:      "ML/AI RESEARCHER // CS & MATH",   // headline role
-  mission:   "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING",   // one focus area per line
-  credit:    "",                                // credit line under the title (blank = hidden)
+  name: "TIMOTHY HSU", // big serif name
+  handle: "@timmyhsu07", // (credit line is hidden by default)
+  role: "ML/AI RESEARCHER // CS & MATH", // headline role
+  mission: "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING", // one focus area per line
+  credit: "", // credit line under the title (blank = hidden)
 
   // Retro CRT bulge (main page only). Change a value, then hard-refresh (Cmd+Shift+R).
   retro: {
@@ -21,14 +21,14 @@ const CONFIG = {
 
   // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP), grab a free
   // key at https://api.nasa.gov it takes a minute.
-  nasaKey:   "Zc4xpogVH2Q1Xa0cnBBfmUdrZMpZNVt3icdbtlV7",
+  nasaKey: "Zc4xpogVH2Q1Xa0cnBBfmUdrZMpZNVt3icdbtlV7",
 
   // top link rail. For the résumé, drop the PDF in this folder and point RESUME at it.
   links: [
-    { label:"GITHUB",   url:"https://github.com/timmyhsu07" },
+    { label:"GITHUB", url:"https://github.com/timmyhsu07" },
     { label:"LINKEDIN", url:"https://www.linkedin.com/in/timhsu7/" },
-    { label:"EMAIL",    url:"mailto:timmyhsu07@gmail.com" },
-    { label:"RESUME",   url:"Timothy_Hsu_Resume_2026.pdf?v=3" },   // bump ?v= when you replace the PDF
+    { label:"EMAIL", url:"mailto:timmyhsu07@gmail.com" },
+    { label:"RESUME", url:"Timothy_Hsu_Resume_2026.pdf?v=3" }, // bump ?v= when you replace the PDF
   ],
 
   // About: left panel + overlay
@@ -39,8 +39,8 @@ const CONFIG = {
       "I'm committed to building reliable, data-driven systems at the seam of computation, applied mathematics, and ML research. You might be wondering now, why the retrofuturistic theme? Because I love space and the aesthetics of Cowboy Bebop.",
     ],
     facts: [
-      { k:"BASE",   v:"NEW YORK, NY" },
-      { k:"FOCUS",  v:"ML · QUANT DEV · SWE" },
+      { k:"BASE", v:"NEW YORK, NY" },
+      { k:"FOCUS", v:"ML · QUANT DEV · SWE" },
       { k:"STATUS", v:"OPEN TO SUMMER 2027 ROLES" },
     ],
     stack: ["Python","Java","C++","SQL","JavaScript","PyTorch","scikit-learn","NumPy","Pandas","SciPy","Matplotlib","UMAP","PaCMAP","OpenCV","scikit-image","Pillow","QuantLib","DuckDB","Parquet","pytest","Jupyter","Docker","Git","LaTeX","Three.js"],
@@ -57,7 +57,7 @@ const CONFIG = {
         "Built an ML-interpretability pipeline in Python (GLIMPSE: Geometric Lens for Inspecting Multiplicity of Sets and Explanations) over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms and reducing projection selection to a single automated run.",
         "Engineered 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness), quantifying projection distortion and enabling automated evaluation across high-dimensional feature spaces.",
         "Designed a modular codebase across 4 core libraries with standardized interfaces, cutting dataset/algorithm onboarding time ~80% and enabling rapid experimentation across 10+ configurations.",
-        "Developing a novel autoencoder-based projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.", 
+        "Developing a novel autoencoder-based projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
       ],
       links:[{label:"GITHUB",url:"https://github.com/timmyhsu07"}] },
 
@@ -91,20 +91,20 @@ const CONFIG = {
       "Open to any quant-dev / SWE roles as well as for ML/AI research collaborations.",
     ],
     channels: [
-      { k:"EMAIL",    v:"timmyhsu07@gmail.com",     url:"mailto:timmyhsu07@gmail.com" },
-      { k:"GITHUB",   v:"github.com/timmyhsu07",     url:"https://github.com/timmyhsu07" },
-      { k:"LINKEDIN", v:"linkedin.com/in/timhsu7",   url:"https://www.linkedin.com/in/timhsu7/" },
-      { k:"RESUME",   v:"Timothy_Hsu_Resume_2026.pdf", url:"Timothy_Hsu_Resume_2026.pdf?v=3" },
+      { k:"EMAIL", v:"timmyhsu07@gmail.com", url:"mailto:timmyhsu07@gmail.com" },
+      { k:"GITHUB", v:"github.com/timmyhsu07", url:"https://github.com/timmyhsu07" },
+      { k:"LINKEDIN", v:"linkedin.com/in/timhsu7", url:"https://www.linkedin.com/in/timhsu7/" },
+      { k:"RESUME", v:"Timothy_Hsu_Resume_2026.pdf", url:"Timothy_Hsu_Resume_2026.pdf?v=3" },
     ],
   },
 
   // Project categories. Each project's `belt` must match one of these ids.
   belts: [
-    { id:"ml",      label:"MACHINE LEARNING", color:"#54ff8a", r:1.55 },
-    { id:"quant",   label:"QUANT FINANCE",  color:"#ff6a1f", r:1.95 },
-    { id:"systems", label:"SYSTEMS / INFRA",  color:"#39d6c8", r:2.30 },
-    { id:"web",     label:"WEB / TOOLS",      color:"#5f7bff", r:2.62 },
-    { id:"research",label:"RESEARCH",         color:"#ff3b2f", r:1.75 },
+    { id:"ml", label:"MACHINE LEARNING", color:"#54ff8a", r:1.55 },
+    { id:"quant", label:"QUANT FINANCE", color:"#ff6a1f", r:1.95 },
+    { id:"systems", label:"SYSTEMS / INFRA", color:"#39d6c8", r:2.30 },
+    { id:"web", label:"WEB / TOOLS", color:"#5f7bff", r:2.62 },
+    { id:"research",label:"RESEARCH", color:"#ff3b2f", r:1.75 },
   ],
 
   // Projects. status is ACTIVE | DEPLOYED | ARCHIVED.
@@ -115,7 +115,7 @@ const CONFIG = {
       links:[{label:"GITHUB",url:"https://github.com/timmyhsu07"}] },
     { name:"GAMMA-SCALP", belt:"quant", status:"DEPLOYED",
       desc:"Research-grade options backtester for gamma-scalping (Python, NumPy, SciPy, pandas) implementing a published exit-timing framework (Ramkumar, 2025); validated Black–Scholes/Greeks against QuantLib to 1e-8 across 3,000+ Monte Carlo paths. Identified a drift-term inconsistency in the paper's hedged-P&L derivation via invariance testing and quantified a non-tradable foresight ceiling (+55% mean P&L vs. hold-to-expiry, +66% net of costs). A look-ahead-proof architecture — immutable per-day state, a write-once data cache, and a 172-test suite — shows a causal vol-forecast exit rule capturing 72% of that ceiling's edge (90% CI 66–77%) net of costs.",
-      tech:["Python","NumPy","SciPy","pandas","QuantLib","pytest"],   
+      tech:["Python","NumPy","SciPy","pandas","QuantLib","pytest"],
       links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/gamma-exit.git"}] },
   ],
 
@@ -123,21 +123,21 @@ const CONFIG = {
   // the live DSN feed. `model` (optional) is a GLB in /models that swaps in once loaded.
   fleet: [
     // active
-    { code:"VGR-1", name:"VOYAGER 1",      status:"ACTIVE", region:"HELIOSHEATH / INTERSTELLAR", range:"~167 AU", vrel:"~17 KM/S", signal:"DSN · X-BAND",  launch:"1977-09-05", type:"voyager",     naif:-31, model:"models/voyager.glb" },
-    { code:"VGR-2", name:"VOYAGER 2",      status:"ACTIVE", region:"INTERSTELLAR SPACE",         range:"~139 AU", vrel:"~15 KM/S", signal:"DSN · S/X-BAND",launch:"1977-08-20", type:"voyager",     naif:-32, model:"models/voyager.glb" },
-    { code:"NH",    name:"NEW HORIZONS",   status:"ACTIVE", region:"OUTER SOLAR SYSTEM",         range:"~63 AU",  vrel:"~14 KM/S", signal:"DSN · X-BAND",  launch:"2006-01-19", type:"newhorizons", naif:-98, model:"models/newhorizons.glb" },
-    { code:"PSP",   name:"PARKER SOLAR PROBE", status:"ACTIVE", region:"INNER HELIOSPHERE",     range:"~0.4 AU", vrel:"~110 KM/S",signal:"DSN · Ka-BAND", launch:"2018-08-12", type:"parker",      naif:-96, model:"models/parker.glb" },
-    { code:"JUNO",  name:"JUNO",           status:"ACTIVE", region:"JOVIAN SYSTEM",             range:"~5.2 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND",  launch:"2011-08-05", type:"juno",        naif:-61, model:"models/juno.glb" },
-    { code:"MRO",   name:"MARS RECON ORBITER", status:"ACTIVE", region:"MARS ORBIT",           range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2005-08-12", type:"orbiter",     naif:-74, model:"models/mro.glb" },
-    { code:"ODY",   name:"MARS ODYSSEY",   status:"ACTIVE", region:"MARS ORBIT",               range:"~1.6 AU", vrel:"~3 KM/S",  signal:"DSN · X-BAND",  launch:"2001-04-07", type:"orbiter",     naif:-53, model:"models/odyssey.glb" },
-    { code:"STA",   name:"STEREO-A",       status:"ACTIVE", region:"HELIOCENTRIC · 1 AU",       range:"~1.0 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND",  launch:"2006-10-26", type:"orbiter",     naif:-234, model:"models/stereo.glb" },
+    { code:"VGR-1", name:"VOYAGER 1", status:"ACTIVE", region:"HELIOSHEATH / INTERSTELLAR", range:"~167 AU", vrel:"~17 KM/S", signal:"DSN · X-BAND", launch:"1977-09-05", type:"voyager", naif:-31, model:"models/voyager.glb" },
+    { code:"VGR-2", name:"VOYAGER 2", status:"ACTIVE", region:"INTERSTELLAR SPACE", range:"~139 AU", vrel:"~15 KM/S", signal:"DSN · S/X-BAND",launch:"1977-08-20", type:"voyager", naif:-32, model:"models/voyager.glb" },
+    { code:"NH", name:"NEW HORIZONS", status:"ACTIVE", region:"OUTER SOLAR SYSTEM", range:"~63 AU", vrel:"~14 KM/S", signal:"DSN · X-BAND", launch:"2006-01-19", type:"newhorizons", naif:-98, model:"models/newhorizons.glb" },
+    { code:"PSP", name:"PARKER SOLAR PROBE", status:"ACTIVE", region:"INNER HELIOSPHERE", range:"~0.4 AU", vrel:"~110 KM/S",signal:"DSN · Ka-BAND", launch:"2018-08-12", type:"parker", naif:-96, model:"models/parker.glb" },
+    { code:"JUNO", name:"JUNO", status:"ACTIVE", region:"JOVIAN SYSTEM", range:"~5.2 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND", launch:"2011-08-05", type:"juno", naif:-61, model:"models/juno.glb" },
+    { code:"MRO", name:"MARS RECON ORBITER", status:"ACTIVE", region:"MARS ORBIT", range:"~1.6 AU", vrel:"~3 KM/S", signal:"DSN · X-BAND", launch:"2005-08-12", type:"orbiter", naif:-74, model:"models/mro.glb" },
+    { code:"ODY", name:"MARS ODYSSEY", status:"ACTIVE", region:"MARS ORBIT", range:"~1.6 AU", vrel:"~3 KM/S", signal:"DSN · X-BAND", launch:"2001-04-07", type:"orbiter", naif:-53, model:"models/odyssey.glb" },
+    { code:"STA", name:"STEREO-A", status:"ACTIVE", region:"HELIOCENTRIC · 1 AU", range:"~1.0 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND", launch:"2006-10-26", type:"orbiter", naif:-234, model:"models/stereo.glb" },
     // ended
-    { code:"CAS",   name:"CASSINI",        status:"ENDED",  region:"SATURN SYSTEM",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1997-10-15", type:"cassini", naif:-82, model:"models/cassini.glb" },
-    { code:"GLL",   name:"GALILEO",        status:"ENDED",  region:"JOVIAN SYSTEM",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1989-10-18", type:"galileo", naif:-77, model:"models/galileo.glb" },
-    { code:"DAWN",  name:"DAWN",           status:"ENDED",  region:"CERES ORBIT",               range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2007-09-27", type:"orbiter", naif:-203, model:"models/dawn.glb" },
-    { code:"MSGR",  name:"MESSENGER",      status:"ENDED",  region:"MERCURY ORBIT",             range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-08-03", type:"orbiter", naif:-236, model:"models/messenger.glb" },
-    { code:"ROS",   name:"ROSETTA",        status:"ENDED",  region:"COMET 67P",                 range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-03-02", type:"orbiter", naif:-226, model:"models/rosetta.glb" },
-    { code:"KEP",   name:"KEPLER",         status:"ENDED",  region:"EARTH-TRAILING ORBIT",      range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2009-03-07", type:"orbiter", naif:-227, model:"models/kepler.glb" },
-    { code:"SPZ",   name:"SPITZER",        status:"ENDED",  region:"EARTH-TRAILING ORBIT",      range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2003-08-25", type:"orbiter", naif:-79, model:"models/spitzer.glb" },
+    { code:"CAS", name:"CASSINI", status:"ENDED", region:"SATURN SYSTEM", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1997-10-15", type:"cassini", naif:-82, model:"models/cassini.glb" },
+    { code:"GLL", name:"GALILEO", status:"ENDED", region:"JOVIAN SYSTEM", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1989-10-18", type:"galileo", naif:-77, model:"models/galileo.glb" },
+    { code:"DAWN", name:"DAWN", status:"ENDED", region:"CERES ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2007-09-27", type:"orbiter", naif:-203, model:"models/dawn.glb" },
+    { code:"MSGR", name:"MESSENGER", status:"ENDED", region:"MERCURY ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-08-03", type:"orbiter", naif:-236, model:"models/messenger.glb" },
+    { code:"ROS", name:"ROSETTA", status:"ENDED", region:"COMET 67P", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-03-02", type:"orbiter", naif:-226, model:"models/rosetta.glb" },
+    { code:"KEP", name:"KEPLER", status:"ENDED", region:"EARTH-TRAILING ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2009-03-07", type:"orbiter", naif:-227, model:"models/kepler.glb" },
+    { code:"SPZ", name:"SPITZER", status:"ENDED", region:"EARTH-TRAILING ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2003-08-25", type:"orbiter", naif:-79, model:"models/spitzer.glb" },
   ],
 };
