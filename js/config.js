@@ -16,7 +16,7 @@ const CONFIG = {
     // overscan the background so the corners stay covered after the bulge.
     fisheyeFill: 1.2,
     // 1 = fill the screen, <1 shrinks it into a black frame (0.88 gives a TV bezel).
-    fisheyeFit: 1,
+    fisheyeFit: 1,   
   },
 
   // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP), grab a free
@@ -117,6 +117,10 @@ const CONFIG = {
       desc:"Research-grade options backtester for gamma-scalping (Python, NumPy, SciPy, pandas) implementing a published exit-timing framework (Ramkumar, 2025); validated Black–Scholes/Greeks against QuantLib to 1e-8 across 3,000+ Monte Carlo paths. Identified a drift-term inconsistency in the paper's hedged-P&L derivation via invariance testing and quantified a non-tradable foresight ceiling (+55% mean P&L vs. hold-to-expiry, +66% net of costs). A look-ahead-proof architecture — immutable per-day state, a write-once data cache, and a 172-test suite — shows a causal vol-forecast exit rule capturing 72% of that ceiling's edge (90% CI 66–77%) net of costs.",
       tech:["Python","NumPy","SciPy","pandas","QuantLib","pytest"],
       links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/gamma-exit.git"}] },
+    { name:"QUANT CHALLENGE '25", belt:"quant", status:"TOP 2%",
+      desc:"Top-2% finalist in Quant Challenge 2025. Engineered an end-to-end ML pipeline using Random Forests (200 trees, max depth 30) over 10,000+ observations across 14 engineered features, improving predictive accuracy >25% over baseline through feature selection, correlation analysis, ensemble modeling, and probability calibration. Built Courtsense, a live basketball trading algorithm processing 1,000+ in-game events per match that sizes bets via the Kelly Criterion for a simulated 18% ROI across test scenarios — validated through backtesting and stress testing across varying game states and volatility conditions.",
+      tech:["Python","scikit-learn","Random Forests","NumPy","pandas","Kelly Criterion"],
+      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/QuantChallenge25-Test-Repo.git"}] },
   ],
 
   // Fleet. `type` picks the procedural wireframe; `naif` is the NAIF id used to match
