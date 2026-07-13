@@ -66,18 +66,21 @@ const galaxyParticles=[]; for(let i=0;i<1300;i++)galaxyParticles.push({i,r:Math.
 // drag-to-rotate state, shared by the full-screen map + galaxy views
 let vpSpin=0, vpTilt=0;
 // r is a compressed orbit radius (0-1), not real AU. moons/rings only draw full-screen.
+// c = real-ish body color (used for the shaded globe). moons get their own orbit ring.
 const PLANETS=[
-  {r:0.11,c:"#d8a06a",s:1.9, ph:0.4,n:"MERCURY",sz:1.7},
-  {r:0.17,c:"#e6c9a0",s:1.5, ph:2.0,n:"VENUS",  sz:2.6},
-  {r:0.23,c:"#5f9bff",s:1.25,ph:3.6,n:"EARTH",  sz:2.6, moons:[{mr:0.038,s:5.5,c:"#cfd3dc",sz:1.0,nm:"MOON"}]},
-  {r:0.30,c:"#ff7a4d",s:1.0, ph:1.1,n:"MARS",   sz:2.1},
-  {r:0.46,c:"#e6c088",s:0.55,ph:5.0,n:"JUPITER",sz:5.2, moons:[
+  {r:0.11,c:"#9a8f82",s:1.9, ph:0.4,n:"MERCURY",sz:1.9},
+  {r:0.17,c:"#e6cd9c",s:1.5, ph:2.0,n:"VENUS",  sz:2.8},
+  {r:0.23,c:"#4f86e0",s:1.25,ph:3.6,n:"EARTH",  sz:2.8, moons:[{mr:0.040,s:5.5,c:"#cfd3dc",sz:1.1,nm:"MOON",lbl:1}]},
+  {r:0.30,c:"#c0512e",s:1.0, ph:1.1,n:"MARS",   sz:2.3, moons:[
+     {mr:0.022,s:6.2,c:"#9c8a7c",sz:0.7,nm:"PHOBOS"},{mr:0.032,s:4.6,c:"#8f7f72",sz:0.6,nm:"DEIMOS"}]},
+  {r:0.46,c:"#d8b487",s:0.55,ph:5.0,n:"JUPITER",sz:5.4, bands:1, moons:[
      {mr:0.052,s:5.2,c:"#e8d29a",sz:0.9,nm:"IO"},      {mr:0.068,s:3.7,c:"#dbe6ff",sz:0.9,nm:"EUROPA"},
-     {mr:0.088,s:2.6,c:"#c9b48f",sz:1.2,nm:"GANYMEDE"},{mr:0.110,s:1.9,c:"#9f8f7a",sz:1.1,nm:"CALLISTO"}]},
-  {r:0.61,c:"#e8d59a",s:0.36,ph:2.3,n:"SATURN", sz:4.6, rings:true},
-  {r:0.75,c:"#a8ece4",s:0.24,ph:4.1,n:"URANUS", sz:3.5},
-  {r:0.86,c:"#5f8fff",s:0.18,ph:0.7,n:"NEPTUNE",sz:3.5},
-  {r:0.95,c:"#c9b8a8",s:0.13,ph:3.2,n:"PLUTO",  sz:1.5}];
+     {mr:0.088,s:2.6,c:"#c9b48f",sz:1.2,nm:"GANYMEDE",lbl:1},{mr:0.110,s:1.9,c:"#9f8f7a",sz:1.1,nm:"CALLISTO"}]},
+  {r:0.61,c:"#e3cd97",s:0.36,ph:2.3,n:"SATURN", sz:4.8, rings:true, bands:1, moons:[
+     {mr:0.072,s:2.4,c:"#d8c49a",sz:1.1,nm:"TITAN",lbl:1},{mr:0.050,s:3.3,c:"#b9b0a4",sz:0.7,nm:"RHEA"}]},
+  {r:0.75,c:"#a8ece4",s:0.24,ph:4.1,n:"URANUS", sz:3.6, moons:[{mr:0.045,s:3.0,c:"#bfd6d2",sz:0.8,nm:"TITANIA"}]},
+  {r:0.86,c:"#4b6fe0",s:0.18,ph:0.7,n:"NEPTUNE",sz:3.6, moons:[{mr:0.046,s:3.3,c:"#cdbfe0",sz:0.9,nm:"TRITON"}]},
+  {r:0.95,c:"#c9b8a8",s:0.13,ph:3.2,n:"PLUTO",  sz:1.6, moons:[{mr:0.030,s:4.0,c:"#b7a99a",sz:0.9,nm:"CHARON"}]}];
 // We don't have real orbital elements per NEO, so derive plausible ones (a, e, inc,
 // node, periapsis) by hashing the designation — stable across reloads, and enough to
 // draw a tilted ellipse + a debris cloud around it. hashStr gives a 0-1 float per key.
@@ -147,6 +150,46 @@ function buildCmePlumes(evs){
   });
 }
 buildCmePlumes();   // seed with fallback; loadDONKI() rebuilds with real data
+// --- planet rendering: shade a flat disc into a 3D-looking globe ---
+const hex2rgb=h=>{h=h.replace("#","");return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};
+const mixTo=(c,t,to)=>Math.round(c+(to-c)*t);      // move c toward `to` (255=lighten, 0=darken)
+const cb=v=>v<0?0:v>255?255:v|0;
+// radial gradient offset toward the sun gives the ball a lit side + a shadowed terminator.
+// sx,sy is the light source (the sun sits at screen center). glow adds a faint colored halo.
+function planetSphere(x,px,py,r,hex,sx,sy,glow){
+  const [R0,G0,B0]=hex2rgb(hex);
+  let lx=sx-px, ly=sy-py; const L=Math.hypot(lx,ly)||1; lx/=L; ly/=L;
+  const hx=px+lx*r*0.42, hy=py+ly*r*0.42;          // highlight sits ~halfway to the lit limb
+  const g=x.createRadialGradient(hx,hy,r*0.05,hx,hy,r*1.9);
+  g.addColorStop(0,   `rgb(${mixTo(R0,.6,255)},${mixTo(G0,.6,255)},${mixTo(B0,.6,255)})`);
+  g.addColorStop(0.4, `rgb(${R0},${G0},${B0})`);
+  g.addColorStop(0.85,`rgb(${mixTo(R0,.6,0)},${mixTo(G0,.6,0)},${mixTo(B0,.55,0)})`);
+  g.addColorStop(1,   `rgb(${mixTo(R0,.78,0)},${mixTo(G0,.78,0)},${mixTo(B0,.72,0)})`);
+  if(glow){x.shadowColor=hex;x.shadowBlur=glow;}
+  x.fillStyle=g; x.beginPath(); x.arc(px,py,r,0,7); x.fill();
+  if(glow)x.shadowBlur=0;
+}
+// faint alternating cloud bands for Jupiter/Saturn, clipped to the globe
+function gasBands(x,px,py,r,hex){
+  const [R0,G0,B0]=hex2rgb(hex);
+  x.save(); x.beginPath(); x.arc(px,py,r,0,7); x.clip();
+  [[-0.5,14],[-0.15,-16],[0.2,12],[0.55,-14]].forEach(([fy,d])=>{
+    x.fillStyle=`rgba(${cb(R0+d)},${cb(G0+d)},${cb(B0+d-3)},.4)`;
+    x.beginPath(); x.ellipse(px,py+fy*r,r*1.15,r*0.16,0,0,7); x.fill(); });
+  x.restore();
+}
+// Saturn's rings drawn in two passes: back half goes behind the globe, front half over it,
+// so the ring plainly wraps around the planet. sq opens/closes the ellipse with the view tilt.
+function saturnRingHalf(x,px,py,psz,half,tilt){
+  const rot=-0.36, sq=0.20+0.38*tilt, back=half==="back";
+  const a0=back?Math.PI:0, a1=back?2*Math.PI:Math.PI, al=back?0.38:0.72;
+  x.save(); x.translate(px,py);
+  x.lineWidth=psz*0.55; x.strokeStyle=`rgba(214,192,150,${al})`;      // outer ring
+  x.beginPath(); x.ellipse(0,0,psz*2.0,psz*2.0*sq,rot,a0,a1); x.stroke();
+  x.lineWidth=psz*0.42; x.strokeStyle=`rgba(232,214,170,${al+0.08})`; // inner ring, Cassini gap between
+  x.beginPath(); x.ellipse(0,0,psz*1.45,psz*1.45*sq,rot,a0,a1); x.stroke();
+  x.restore();
+}
 function drawOrbital(x,w,h,t,big){
   const cx=w*0.5, cy=h*0.52, zm=big?vpZoom:1, R=Math.min(w,h)*(big?0.46:0.52)*zm;
   const tilt=Math.max(0.12,Math.min(0.92, 0.40 + (big?vpTilt:0))), spin=(big?vpSpin:0);
@@ -211,19 +254,23 @@ function drawOrbital(x,w,h,t,big){
     x.moveTo(s.x,s.y-r0*1.4); x.lineTo(s.x,s.y+r0*1.4); x.stroke();
     x.fillStyle=`rgba(255,250,235,${0.5+0.5*tw})`;
     x.beginPath(); x.arc(s.x,s.y,r0*0.55,0,7); x.fill(); }); }
-  // planets: cyan discs (Earth blue), with moons/rings/labels in the full-screen view
+  // planets: shaded 3D globes in their real colors, with moon orbits + Saturn's rings full-screen
   PLANETS.forEach(p=>{ const a=t*p.s+p.ph, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
-    const px=s.x, py=s.y, psz=(p.sz||2.4)*(big?1.6:0.7)*Math.min(zm,1.6);
-    const col=p.n==="EARTH"?"#5f9bff":"#bfe9f2";
-    if(big&&p.rings){ x.save(); x.translate(px,py); x.rotate(-0.5);
-      x.strokeStyle="rgba(191,233,242,.5)"; x.lineWidth=1.1;
-      for(const rr of [1.6,2.0]){ x.beginPath(); x.ellipse(0,0,psz*rr,psz*rr*0.33,0,0,7); x.stroke(); } x.restore(); }
-    x.fillStyle=col; x.shadowColor=col; x.shadowBlur=big?14:6;
-    x.beginPath(); x.arc(px,py,psz,0,7); x.fill(); x.shadowBlur=0;
+    const px=s.x, py=s.y, psz=Math.max(big?2.6:1,(p.sz||2.4)*(big?1.7:0.7)*Math.min(zm,1.6));
+    const hex=p.c||"#bfe9f2";
+    // moon orbit rings first, so the globe sits on top of them
+    if(big&&p.moons)p.moons.forEach(m=>{ const mrr=R*m.mr;
+      x.strokeStyle="rgba(150,180,205,.16)"; x.lineWidth=1;
+      x.beginPath(); x.ellipse(px,py,mrr,Math.max(1,mrr*tilt),0,0,7); x.stroke(); });
+    if(big&&p.rings)saturnRingHalf(x,px,py,psz,"back",tilt);
+    planetSphere(x,px,py,psz,hex,cx,cy,big?11:4);
+    if(big&&p.bands&&psz>5)gasBands(x,px,py,psz,hex);
+    if(big&&p.rings)saturnRingHalf(x,px,py,psz,"front",tilt);
+    // moons, lit from the sun like everything else
     if(big&&p.moons)p.moons.forEach((m,mi)=>{ const ma=t*m.s+mi*1.7+spin, mrr=R*m.mr;
       const mx=px+Math.cos(ma)*mrr, my=py+Math.sin(ma)*mrr*tilt;
-      x.fillStyle="rgba(207,211,220,.9)"; x.beginPath(); x.arc(mx,my,m.sz||1,0,7); x.fill();
-      if(m.nm==="MOON"){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
+      planetSphere(x,mx,my,Math.max(1,m.sz||1),m.c||"#cfd3dc",cx,cy,0);
+      if(m.lbl){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
     if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
   // nearest-pass markers, positioned relative to Earth's current spot
   if(big){ const pe=PLANETS[2], aE=t*pe.s+pe.ph;
