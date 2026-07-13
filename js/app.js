@@ -116,11 +116,10 @@ function rebuildNeoScatter(){
     dx:(hashStr(o.des+"ex")-0.5)*0.10, dz:(hashStr(o.des+"ez")-0.5)*0.10,
     dy:(hashStr(o.des+"ey")-0.5)*0.03, haz:!!o.haz}));
 }
-// Heliocentric map. CMEs and flares are real DONKI events, placed physically: a CME
-// plume points along its heliographic lon/lat, spreads over its half-angle, and its
-// front sits at speed × time-since-launch (mapped through mapAU). ORB/CME/FLR/SOL
-// toggle the layers.
-const MAP_LAYERS={orb:true,cme:true,flr:true,sol:true};
+// Heliocentric map. CMEs are real DONKI events, placed physically: a plume points
+// along its heliographic lon/lat, spreads over its half-angle, and its front sits at
+// speed × time-since-launch (mapped through mapAU). ORB/CME/SOL toggle the layers.
+const MAP_LAYERS={orb:true,cme:true,sol:true};
 let vpZoom=1;
 // real AU → compressed map radius. Fitted to the planet radii above (Earth 1→0.23,
 // Jupiter 5.2→0.46) so CME fronts land between the right planets.
@@ -132,24 +131,27 @@ const CME_FALLBACK=[
   {lon:22, halfAngle:29, speed:488, start:Date.now()-30*36e5, halo:false},
   {lon:156,halfAngle:24, speed:620, start:Date.now()-20*36e5, halo:false},
   {lon:-95,halfAngle:38, speed:450, start:Date.now()-52*36e5, halo:false}];
-const FLR_FALLBACK=[{lon:-70,cls:"C5.9",t:Date.now()-2*36e5}];
 function buildCmePlumes(evs){
   // cap at 12 events, evenly sampled across the window (drawing all of them is too busy)
   let list=(evs&&evs.length?evs:CME_FALLBACK);
   if(list.length>12){ const step=list.length/12; list=Array.from({length:12},(_,i)=>list[Math.floor(i*step)]); }
   cmePlumes=list.map(ev=>{
-    const parts=[]; const N=ev.halo?680:520;
+    const parts=[]; const N=ev.halo?1100:820;                  // dense enough to read as a real spray
     for(let i=0;i<N;i++){ const g=(Math.random()+Math.random()+Math.random())/1.5-1;
       parts.push({
-      off:g*Math.abs(g),                                       // bias toward the cone axis
+      off:g,                                                   // triangular across the cone (densest on-axis)
       up:((Math.random()+Math.random()+Math.random())/1.5-1)*0.8,
-      f:Math.pow(Math.random(),0.62),                          // bias toward the sun
+      f:Math.pow(Math.random(),0.62),                          // spread out along the throw
       j:(Math.random()-0.5)*0.03,
       sz:Math.random()<0.1?1.8:1.2, br:0.5+Math.random()*0.5 }); }
     return {...ev, parts};
   });
 }
 buildCmePlumes();   // seed with fallback; loadDONKI() rebuilds with real data
+// seeded grain for the SOL corona — a stable granular cloud that hugs the sun
+const solCorona=[]; for(let i=0;i<460;i++){ const u=Math.random();
+  solCorona.push({a:Math.random()*6.2832, r:Math.pow(u,1.5), tw:Math.random()*6.2832,
+    sz:Math.random()<0.14?2:1, br:0.35+0.65*Math.random()}); }
 // --- planet rendering: shade a flat disc into a 3D-looking globe ---
 const hex2rgb=h=>{h=h.replace("#","");return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};
 const mixTo=(c,t,to)=>Math.round(c+(to-c)*t);      // move c toward `to` (255=lighten, 0=darken)
@@ -216,44 +218,44 @@ function drawOrbital(x,w,h,t,big){
         x.fillStyle=o.haz?`rgba(255,64,47,${0.7*d.a*tw})`:`rgba(226,178,80,${0.55*d.a*tw})`;
         const z=big?d.sz:1.4; x.fillRect(s.x,s.y,z,z); }); });
   }
-  // CME: cone aimed along each event's lon/lat, front advanced by speed × elapsed time
+  // CME: broad particle spray per DONKI event, aimed along its lon/lat and thrown outward
+  // by speed × elapsed time. Colored by side of the sun — red sunward/Earth side, gold beyond.
   if(MAP_LAYERS.cme){ const now=Date.now();
     cmePlumes.forEach(p=>{
-      const travAU=Math.min(46, p.speed*((now-p.start)/1000)/AU_KM_);
+      const travAU=Math.min(60, p.speed*((now-p.start)/1000)/AU_KM_);
       if(travAU<0.02)return;
-      const lonR=(p.lon||0)*Math.PI/180, latR=(p.lat||0)*Math.PI/180,
-            haR=Math.max(0.10,(p.halfAngle||30)*Math.PI/180);
+      const lonR=(p.lon||0)*Math.PI/180, latR=(p.lat||0)*Math.PI/180;
+      const haR=Math.max(0.5,Math.min(1.05,(p.halfAngle||30)*Math.PI/180*1.7)); // wide fan
+      const front=Math.min(1.5, mapAU(travAU)*1.35);                            // reach most of the map
       p.parts.forEach((q,i)=>{ if(!big&&i%4)return;
-        const au=q.f*travAU, rm=mapAU(au); if(rm>1.15)return;
+        const rm=q.f*front; if(rm>1.5)return;
         const az=(p.halo? q.off*Math.PI : lonR+q.off*haR)+q.j;
-        const el=latR+q.up*haR*0.6;
+        const el=latR+q.up*haR*0.55;
         const s=prj(rm*Math.cos(el)*Math.cos(az), rm*Math.sin(el), rm*Math.cos(el)*Math.sin(az));
-        // color by distance from the sun: white-hot core → amber → ochre at the front
-        const core=au<0.16, ax=1-Math.abs(q.off)*0.55;
-        const al=(core?0.95:q.br*ax*(1-rm*0.62))*(big?1:0.8), sz=q.sz*(big?1:0.8);
-        x.fillStyle=core?`rgba(255,248,224,${al})`:(rm<0.42?`rgba(246,200,110,${al})`:`rgba(212,164,86,${al})`);
+        const core=rm<0.12, red=s.x>=cx, ax=1-Math.abs(q.off)*0.4;
+        const al=(core?0.95:q.br*ax*(1-rm*0.5))*(big?1:0.8), sz=q.sz*(big?1:0.8);
+        x.fillStyle=core?`rgba(255,248,224,${al})`:red?`rgba(255,74,54,${al})`:`rgba(232,182,80,${al})`;
         x.fillRect(s.x,s.y,sz,sz); });
     }); }
-  // SOL: sun glow. Cap the radius so zooming in doesn't wash out the inner planets.
+  // SOL: compact glow, a granular corona hugging the sun, and a few faint shells around it.
+  // Radius is capped so zooming in doesn't wash out the inner planets.
   if(MAP_LAYERS.sol){ const sr=Math.min(R*0.30, Math.min(w,h)*0.16);
     const g=x.createRadialGradient(cx,cy,0,cx,cy,sr);
-    g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.55)");
-    g.addColorStop(.5,"rgba(255,160,70,.16)"); g.addColorStop(1,"rgba(255,120,50,0)");
-    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,sr,0,7); x.fill(); }
+    g.addColorStop(0,"rgba(255,250,230,.95)"); g.addColorStop(.18,"rgba(255,222,150,.5)");
+    g.addColorStop(.5,"rgba(255,160,70,.14)"); g.addColorStop(1,"rgba(255,120,50,0)");
+    x.fillStyle=g; x.beginPath(); x.arc(cx,cy,sr,0,7); x.fill();
+    x.lineWidth=1;
+    for(const rf of [0.5,0.74,1.0,1.28]){ x.strokeStyle="rgba(240,182,92,.09)";
+      x.beginPath(); x.arc(cx,cy,sr*rf,0,7); x.stroke(); }
+    const cr=sr*1.4;                                            // grainy corona out past the glow
+    solCorona.forEach((pt,i)=>{ if(!big&&(i&1))return;
+      const tw=0.5+0.5*Math.sin(t*2.4+pt.tw), rr=pt.r*cr;
+      const gx=cx+Math.cos(pt.a)*rr, gy=cy+Math.sin(pt.a)*rr;
+      const al=pt.br*tw*(1-pt.r*0.55)*(big?0.9:0.7);
+      x.fillStyle=`rgba(255,198,98,${al})`; const z=big?pt.sz:1; x.fillRect(gx,gy,z,z); }); }
   x.fillStyle="#fff6de"; x.shadowColor="#ffd27a"; x.shadowBlur=big?30:12;
   x.beginPath(); x.arc(cx,cy,(big?9:4)*Math.min(Math.max(zm,0.8),1.8),0,7); x.fill(); x.shadowBlur=0;
   if(big&&MAP_LAYERS.sol){ x.fillStyle="rgba(71,255,169,.8)"; x.font="10px 'Share Tech Mono',monospace"; x.fillText("SOL",cx+12,cy+3); }
-  // FLR: cross-spark at each flare's source longitude on the limb, sized by GOES class
-  // (X > M > C). Must draw after SOL or the glow hides it.
-  if(MAP_LAYERS.flr&&big){ (solFlares.length?solFlares:FLR_FALLBACK).slice(-6).forEach((f,k)=>{
-    const a=(f.lon||0)*Math.PI/180, tw=0.5+0.5*Math.sin(t*4+k*2.1);
-    const cls=(f.cls||"C")[0], m=cls==="X"?1.9:cls==="M"?1.4:1;
-    const s=prj(Math.cos(a)*0.065,0,Math.sin(a)*0.065), r0=(2.0+2.6*tw)*m;
-    x.strokeStyle=`rgba(255,240,200,${0.35+0.5*tw})`; x.lineWidth=1;
-    x.beginPath(); x.moveTo(s.x-r0*2.2,s.y); x.lineTo(s.x+r0*2.2,s.y);
-    x.moveTo(s.x,s.y-r0*1.4); x.lineTo(s.x,s.y+r0*1.4); x.stroke();
-    x.fillStyle=`rgba(255,250,235,${0.5+0.5*tw})`;
-    x.beginPath(); x.arc(s.x,s.y,r0*0.55,0,7); x.fill(); }); }
   // planets: shaded 3D globes in their real colors, with moon orbits + Saturn's rings full-screen
   PLANETS.forEach(p=>{ const a=t*p.s+p.ph, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
     const px=s.x, py=s.y, psz=Math.max(big?2.6:1,(p.sz||2.4)*(big?1.7:0.7)*Math.min(zm,1.6));
@@ -431,7 +433,7 @@ addEventListener("pointermove",e=>{ if(!vpDrag)return;
   vpLX=e.clientX; vpLY=e.clientY; });
 addEventListener("wheel",e=>{ if(viewMode!=="orbital"&&viewMode!=="geo")return;
   vpZoom=Math.max(0.5,Math.min(3.6, vpZoom*Math.exp(-e.deltaY*0.0012))); },{passive:true});
-// ORB / CME / FLR / SOL layer toggles
+// ORB / CME / SOL layer toggles
 $$("#map-toggles .mtg").forEach(b=>b.addEventListener("click",()=>{
   const k=b.dataset.tg; MAP_LAYERS[k]=!MAP_LAYERS[k]; b.classList.toggle("on",MAP_LAYERS[k]); }));
 
