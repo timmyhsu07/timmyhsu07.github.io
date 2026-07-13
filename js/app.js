@@ -201,22 +201,13 @@ function drawOrbital(x,w,h,t,big){
   const prj=(X,Y,Z)=>{ const x2=X*cS+Z*sS, z2=-X*sS+Z*cS;
     return {x:cx+x2*R, y:cy+z2*R*tilt-Y*R*vf}; };
   x.lineWidth=1;
-  // ORB: NEO ellipses (red = hazardous, else gold) + planet orbits (Earth in blue)
+  // ORB: planet orbits only (Earth's in blue). Moon orbits draw with each planet below.
   if(MAP_LAYERS.orb){
-    neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
-      x.strokeStyle=o.haz?"rgba(255,64,47,.30)":"rgba(212,164,70,.20)";
-      x.beginPath(); o.pts.forEach((p,i)=>{const s=prj(p.X,p.Y,p.Z); i?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);}); x.stroke(); });
     PLANETS.forEach(p=>{ const earth=p.n==="EARTH";
       x.strokeStyle=earth?"rgba(95,155,255,.55)":"rgba(122,90,20,.30)"; x.lineWidth=earth?1.3:1;
       x.beginPath(); for(let k=0;k<=64;k++){ const a=k/64*6.2832, s=prj(Math.cos(a)*p.r,0,Math.sin(a)*p.r);
         k?x.lineTo(s.x,s.y):x.moveTo(s.x,s.y);} x.stroke(); });
     x.lineWidth=1;
-    // dust clouds. skip every other orbit + 2/3 of points in the small mini view
-    neoOrbits.forEach((o,oi)=>{ if(!big&&oi%2)return;
-      o.dust.forEach((d,k)=>{ if(!big&&k%3)return;
-        const s=prj(d.X,d.Y,d.Z), tw=0.6+0.4*Math.sin(t*1.4+d.tw);
-        x.fillStyle=o.haz?`rgba(255,64,47,${0.7*d.a*tw})`:`rgba(226,178,80,${0.55*d.a*tw})`;
-        const z=big?d.sz:1.4; x.fillRect(s.x,s.y,z,z); }); });
   }
   // CME: broad particle spray per DONKI event, aimed along its lon/lat and thrown outward
   // by speed × elapsed time. Colored by side of the sun — red sunward/Earth side, gold beyond.
@@ -274,12 +265,6 @@ function drawOrbital(x,w,h,t,big){
       planetSphere(x,mx,my,Math.max(1,m.sz||1),m.c||"#cfd3dc",cx,cy,0);
       if(m.lbl){ x.fillStyle="rgba(180,195,220,.6)"; x.font="8px 'Share Tech Mono',monospace"; x.fillText(m.nm,mx+3,my-2); } });
     if(big){x.fillStyle="rgba(88,214,200,.95)"; x.font="11px 'Share Tech Mono',monospace"; x.fillText(p.n,px+psz+5,py+3);}});
-  // nearest-pass markers, positioned relative to Earth's current spot
-  if(big){ const pe=PLANETS[2], aE=t*pe.s+pe.ph;
-    const eX=Math.cos(aE)*pe.r, eZ=Math.sin(aE)*pe.r;
-    nearEarthMarks.forEach(m=>{ const s=prj(eX+m.dx,m.dy,eZ+m.dz);
-      x.fillStyle=m.haz?"#ff5a3c":"#f0b32a";
-      x.save(); x.translate(s.x,s.y); x.rotate(0.785); x.fillRect(-2.6,-2.6,5.2,5.2); x.restore(); }); }
   // a few labelled spacecraft as green diamonds (decorative, not real positions)
   if(big){ [["JUNO",0.47],["PSP",0.13],["VGR-1",1.02]].forEach(([nm,rf],k)=>{
     const a=t*0.22+k*2.3, s=prj(Math.cos(a)*rf,0,Math.sin(a)*rf);
