@@ -38,12 +38,13 @@ function projectsHTML(){
   const belt=id=>(C.belts||[]).find(b=>b.id===id)||{label:id,color:"#f0b32a"};
   return `<section id="projects"><span class="sec-h">Projects</span>`+items.map(p=>{
     const b=belt(p.belt);
+    const bullets=(p.detail||[p.desc]).filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("");
     const tags=(p.tech||[]).map(t=>`<span class="chip">${esc(t)}</span>`).join("");
     const links=(p.links||[]).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("");
     return `<div class="entry">
       <div class="e-top"><span class="e-name">${esc(p.name)}</span>
         <span class="e-meta belt belt-${esc(p.belt)}" style="color:${b.color}">${esc(b.label)} · ${esc(p.status)}</span></div>
-      <div class="e-desc">${esc(p.desc||"")}</div>
+      <ul>${bullets}</ul>
       <div class="e-foot"><div class="chips">${tags}</div><div class="e-links">${links}</div></div>
     </div>`;
   }).join("")+`</section>`;

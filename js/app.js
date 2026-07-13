@@ -937,7 +937,10 @@ function openDossier(p){
   $("#d-idx").textContent="OBJ-"+String(p._i+1).padStart(3,"0");
   $("#d-name").textContent=p.name;
   const cls=$("#d-cls"); cls.textContent="◈ "+p._belt.label+"  ·  "+p.status; cls.style.color=p._belt.color;
-  $("#d-desc").textContent=p.desc;
+  const bullets=(p.detail||[p.desc]).filter(Boolean);
+  $("#d-desc").innerHTML = p.detail
+    ? `<ul>${bullets.map(b=>`<li>${esc(b)}</li>`).join("")}</ul>`
+    : esc(p.desc||"");
   $("#d-meta").innerHTML=`
     <span class="k">BELT</span><span class="v">${esc(p._belt.label)}</span>
     <span class="k">STATUS</span><span class="v">${esc(p.status)}</span>

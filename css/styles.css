@@ -384,6 +384,9 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 #dossier .x:hover{color:var(--red);border-color:var(--red)}
 #dossier .body{padding:14px 18px 20px}
 #dossier .desc{font-size:14px;line-height:1.6;color:var(--text);margin-bottom:14px;opacity:.92}
+#dossier .desc ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+#dossier .desc li{font-size:13px;line-height:1.55;color:var(--text);opacity:.92;padding-left:16px;position:relative;overflow-wrap:anywhere}
+#dossier .desc li::before{content:"▸";position:absolute;left:0;color:var(--orange)}
 #dossier .meta{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-family:var(--tt);font-size:12px;margin-bottom:14px}
 #dossier .meta .k{color:var(--text-dim);letter-spacing:.12em} #dossier .meta .v{color:var(--text)}
 #dossier .tech{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
