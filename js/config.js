@@ -50,7 +50,7 @@ const CONFIG = {
   about: {
     lead: "ML/AI researcher building high-performance computational systems at the intersection of machine learning, quantitative methods, and mathematics.",
     body: [
-      "I study Computer Science and Mathematics at the Rutgers Honors College, focused on building high-performance computational systems, applying machine learning, and developing quantitative methods for real-world problems.",
+      "Pursuing a major in both Computer Science and Mathematics at the Rutgers Honors College, I'm Focused on building high-performance computational systems, applying machine learning, and developing quantitative methods for real-world problems.",
       "I'm committed to building reliable, data-driven systems at the seam of computation, applied mathematics, and ML research. You might be wondering now, why the retrofuturistic theme? Because I love space and the aesthetics of Cowboy Bebop.",
     ],
     facts: [
