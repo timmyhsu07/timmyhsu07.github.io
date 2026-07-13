@@ -16,7 +16,7 @@ $("#rail").innerHTML = CONFIG.links.map(l=>
   `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join("");
 
 // --- starfield ---
-// faint background stars; a few pulse brighter on a sine cycle
+// faint background stars, a few of them pulse brighter on a sine cycle so it feels alive
 const starCv=$("#stars"), sctx=starCv.getContext("2d");
 let stars=[];
 function initStars(){
@@ -587,7 +587,7 @@ function startCycle(){
   cycleTimer=setInterval(()=>{
     let i=list.findIndex(f=>f.code===(currentCraft&&currentCraft.code));
     i=(i+1)%list.length; selectCraft(list[i].code);
-  },15000);   // next craft every 15s
+  },15000);   //next craft every 15s
 }
 
 // --- DSN Now (live) ---

@@ -19,8 +19,8 @@ const CONFIG = {
     fisheyeFit: 1,
   },
 
-  // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP);
-  // free key at https://api.nasa.gov.
+  // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP), grab a free
+  // key at https://api.nasa.gov it takes a minute.
   nasaKey:   "Zc4xpogVH2Q1Xa0cnBBfmUdrZMpZNVt3icdbtlV7",
 
   // top link rail. For the résumé, drop the PDF in this folder and point RESUME at it.

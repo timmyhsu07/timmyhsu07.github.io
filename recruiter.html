@@ -30,7 +30,7 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:16px;line-height:1.5;
   -webkit-font-smoothing:antialiased;padding:0 0 80px}
-/* clean, subtle vignette only — no scanlines (kept professional) */
+/* just a vignette here, no scanlines — this page stays plain */
 body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
   background:radial-gradient(ellipse at 50% 34%,transparent 46%,rgba(0,0,0,.55) 88%,rgba(0,0,0,.9) 100%)}
 #app{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:34px 28px 0}  /* clears the pinned top-left controls */
@@ -89,14 +89,14 @@ footer{padding:28px 0 0;font-family:var(--tt);font-size:12px;letter-spacing:.12e
 footer a{color:var(--hi)}
 @media(max-width:560px){ .facts,.contact-grid{grid-template-columns:1fr} .entry .e-meta{white-space:normal} }
 
-/* ── control rail: horizontal, pinned top-left, rides along as the page scrolls ── */
+/* control buttons, pinned top-left, fixed so they follow the scroll */
 #side-ctrl{position:fixed;left:14px;top:14px;z-index:30;display:flex;flex-direction:row;gap:10px}
 #side-ctrl .sbtn{font-family:var(--tt);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
   padding:9px 14px;border:1px solid var(--line);color:var(--text);background:var(--panel);
   cursor:pointer;text-decoration:none;transition:.15s;line-height:1}
 #side-ctrl .sbtn:hover{border-color:var(--hi);color:var(--hi);box-shadow:0 0 12px rgba(71,255,169,.3)}
 
-/* ── LIGHT MODE: gray bg · navy (was amber) · black (was green) · red kept ── */
+/* light mode: gray bg, amber→navy, green→black, red stays */
 body.light{
   --bg:#c6c9ce; --panel:#d5d8dd; --text:#17285a; --dim:#5b6480;
   --line:#9aa1ad; --line-soft:rgba(23,40,90,.26);

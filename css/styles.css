@@ -484,7 +484,7 @@ body:not(.retro) #mtime #mt-play:hover,body:not(.retro) #mtime #fisheye:hover,#m
 #boot .cur{display:inline-block;width:9px;height:15px;background:var(--hi);vertical-align:middle;animation:blink .9s steps(2) infinite;margin-left:2px}
 
 /* --- responsive --- */
-/* force long unbroken strings to wrap so they don't blow out the panels */
+/* force long unbroken strings to wrap so they dont blow out the panels */
 .p-text,.p-lead,.card .c-desc,#dossier .desc,.research-item .ri-desc,.research-detail li,.p-facts .v{overflow-wrap:anywhere}
 
 @media(max-width:1150px){ #sidecol{width:264px} .view-label{left:300px} }
