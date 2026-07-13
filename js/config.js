@@ -103,7 +103,7 @@ const CONFIG = {
   contact: {
     lead: "Signals open: feel free to contact me!",
     body: [
-      "Open to any quant-dev / SWE roles as well as for ML/AI research collaborations. I answer email the fastest.",
+      "Open to any quant-dev / SWE roles as well as for ML/AI research collaborations.",
     ],
     channels: [
       { k:"EMAIL",    v:"timmyhsu07@gmail.com",     url:"mailto:timmyhsu07@gmail.com" },
