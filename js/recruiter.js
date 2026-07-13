@@ -11,9 +11,11 @@ function aboutHTML(){
   const a=C.about||{};
   const facts=(a.facts||[]).map(f=>`<span class="k">${esc(f.k)}</span><span class="v">${esc(f.v)}</span>`).join("");
   const stack=(a.stack||[]).map(s=>`<span class="chip">${esc(s)}</span>`).join("");
+  // The hero already shows about.lead under the name. Lead this section with the body
+  // instead (first paragraph gets the big lead styling) so the same line isn't printed twice.
+  const body=(a.body||[]).map((p,i)=>i?`<p class="p">${esc(p)}</p>`:`<div class="lead">${esc(p)}</div>`).join("");
   return `<section id="about"><span class="sec-h">About</span>
-    ${a.lead?`<div class="lead">${esc(a.lead)}</div>`:""}
-    ${(a.body||[]).map(p=>`<p class="p">${esc(p)}</p>`).join("")}
+    ${body}
     ${facts?`<div class="facts">${facts}</div>`:""}
     ${stack?`<div class="sub">Core Stack</div><div class="chips">${stack}</div>`:""}</section>`;
 }
