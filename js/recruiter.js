@@ -42,7 +42,7 @@ function projectsHTML(){
     const links=(p.links||[]).map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`).join("");
     return `<div class="entry">
       <div class="e-top"><span class="e-name">${esc(p.name)}</span>
-        <span class="e-meta belt" style="color:${b.color}">${esc(b.label)} · ${esc(p.status)}</span></div>
+        <span class="e-meta belt belt-${esc(p.belt)}" style="color:${b.color}">${esc(b.label)} · ${esc(p.status)}</span></div>
       <div class="e-desc">${esc(p.desc||"")}</div>
       <div class="e-foot"><div class="chips">${tags}</div><div class="e-links">${links}</div></div>
     </div>`;

@@ -109,6 +109,9 @@ body.light .hero .rail a:hover,body.light #side-ctrl .sbtn:hover{box-shadow:none
 body.light .sub{color:#b58900}                                 /* Core Stack title = yellow */
 body.light .hero .focus{color:#1b4d33}                          /* darker forest green (light) */
 body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chips = navy */
+/* project belts: the neon greens/oranges are too hot on the gray bg. !important beats the inline color. */
+body.light .belt-ml{color:#184d31 !important}                   /* MACHINE LEARNING = forest green */
+body.light .belt-quant{color:#6d1f45 !important}                /* QUANT FINANCE = dark maroon (purplish) */
 
 @media(max-width:1040px){
   #side-ctrl .sbtn{padding:8px 12px;letter-spacing:.14em}
@@ -123,7 +126,7 @@ body.light .chip{color:#17285a;border-color:rgba(23,40,90,.5)}  /* stack/tag chi
 </div>
 <div id="app"></div>
 <script src="js/config.js?v=17"></script>
-<script src="js/recruiter.js?v=16"></script>
+<script src="js/recruiter.js?v=17"></script>
 <script>
 (function(){
   var b=document.body, t=document.getElementById('lightToggle'), K='recruiterLight';
