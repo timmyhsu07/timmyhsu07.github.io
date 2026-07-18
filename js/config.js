@@ -1,37 +1,34 @@
-/* CONFIG — everything editable lives here. Both index.html and recruiter.html read
-   this one object, so a change shows up in both. Edit values, not keys. */
 const CONFIG = {
-  name: "TIMOTHY HSU", // big serif name
-  handle: "@timmyhsu07", // (credit line is hidden by default)
-  role: "ML/AI RESEARCHER // CS & MATH", // headline role
-  mission: "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING", // one focus area per line
-  credit: "", // credit line under the title (blank = hidden)
-
-  // Retro CRT bulge (main page only). Change a value, then hard-refresh (Cmd+Shift+R).
+  name: "TIMOTHY HSU",
+  handle: "@timmyhsu07",
+  role: "ML/AI RESEARCHER // CS & MATH",
+  mission: "MACHINE LEARNING\nQUANTITATIVE FINANCE\nSOFTWARE ENGINEERING",
+  credit: "",
   retro: {
-    // bulge depth. 0 = flat, 0.4 = default. Past ~0.45 the edge HUD text starts clipping.
-    fisheyeBulge: 0.40,
-    // sphere size vs the screen. Lower = rounder/more dramatic, higher = gentler.
+    fisheyeBulge: 0.4,
     fisheyeSpan: 1.5,
-    // overscan the background so the corners stay covered after the bulge.
     fisheyeFill: 1.2,
-    // 1 = fill the screen, <1 shrinks it into a black frame (0.88 gives a TV bezel).
-    fisheyeFit: 1,   
+    fisheyeFit: 1,
   },
-
-  // NASA API key. DEMO_KEY works but is rate-limited (~30/hr per IP), grab a free
-  // key at https://api.nasa.gov it takes a minute.
   nasaKey: "Zc4xpogVH2Q1Xa0cnBBfmUdrZMpZNVt3icdbtlV7",
-
-  // top link rail. For the résumé, drop the PDF in this folder and point RESUME at it.
   links: [
-    { label:"GITHUB", url:"https://github.com/timmyhsu07" },
-    { label:"LINKEDIN", url:"https://www.linkedin.com/in/timhsu7/" },
-    { label:"EMAIL", url:"mailto:timmyhsu07@gmail.com" },
-    { label:"RESUME", url:"Timothy_Hsu_Resume_2026.pdf?v=3" }, // bump ?v= when you replace the PDF
+    {
+      label: "GITHUB",
+      url: "https://github.com/timmyhsu07",
+    },
+    {
+      label: "LINKEDIN",
+      url: "https://www.linkedin.com/in/timhsu7/",
+    },
+    {
+      label: "EMAIL",
+      url: "mailto:timmyhsu07@gmail.com",
+    },
+    {
+      label: "RESUME",
+      url: "Timothy_Hsu_Resume_2026.pdf?v=3",
+    },
   ],
-
-  // About: left panel + overlay
   about: {
     lead: "ML/AI researcher building high-performance computational systems at the intersection of machine learning, quantitative methods, and mathematics.",
     body: [
@@ -39,125 +36,439 @@ const CONFIG = {
       "I'm committed to building reliable, data-driven systems at the seam of computation, applied mathematics, and ML research. You might be wondering now, why the retrofuturistic theme? Because I love space and the aesthetics of Cowboy Bebop.",
     ],
     facts: [
-      { k:"BASE", v:"NEW YORK, NY" },
-      { k:"FOCUS", v:"ML · QUANT DEV · SWE" },
-      { k:"STATUS", v:"OPEN TO SUMMER 2027 ROLES" },
+      {
+        k: "BASE",
+        v: "NEW YORK, NY",
+      },
+      {
+        k: "FOCUS",
+        v: "ML · QUANT DEV · SWE",
+      },
+      {
+        k: "STATUS",
+        v: "OPEN TO SUMMER 2027 ROLES",
+      },
     ],
-    stack: ["Python","Java","C++","SQL","JavaScript","PyTorch","scikit-learn","NumPy","Pandas","SciPy","Matplotlib","UMAP","PaCMAP","OpenCV","scikit-image","Pillow","QuantLib","DuckDB","Parquet","pytest","Jupyter","Docker","Git","LaTeX","Three.js"],
+    stack: [
+      "Python",
+      "Java",
+      "C++",
+      "SQL",
+      "JavaScript",
+      "PyTorch",
+      "scikit-learn",
+      "NumPy",
+      "Pandas",
+      "SciPy",
+      "Matplotlib",
+      "UMAP",
+      "PaCMAP",
+      "OpenCV",
+      "scikit-image",
+      "Pillow",
+      "QuantLib",
+      "DuckDB",
+      "Parquet",
+      "pytest",
+      "Jupyter",
+      "Docker",
+      "Git",
+      "LaTeX",
+      "Three.js",
+    ],
   },
-
-  // Research: each entry is a list row; clicking it opens the detail pane. detail[]
-  // are that pane's bullets.
   research: [
-    { name:"Counterfactual Recourse under Uncertainty", org:"TRACE AI Lab · Rutgers", year:"2026",
-      status:"ACTIVE",
-      desc:"GLIMPSE — geometric ML interpretability: on-manifold counterfactual recourse via autoencoders under parameter uncertainty.",
-      tags:["Python","PyTorch","Autoencoders","UMAP / PaCMAP","scikit-learn"],
-      detail:[
+    {
+      name: "Counterfactual Recourse under Uncertainty",
+      org: "TRACE AI Lab · Rutgers",
+      year: "2026",
+      status: "ACTIVE",
+      desc: "GLIMPSE — geometric ML interpretability: on-manifold counterfactual recourse via autoencoders under parameter uncertainty.",
+      tags: [
+        "Python",
+        "PyTorch",
+        "Autoencoders",
+        "UMAP / PaCMAP",
+        "scikit-learn",
+      ],
+      detail: [
         "Built an ML-interpretability pipeline in Python (GLIMPSE: Geometric Lens for Inspecting Multiplicity of Sets and Explanations) over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms and reducing projection selection to a single automated run.",
         "Engineered 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness), quantifying projection distortion and enabling automated evaluation across high-dimensional feature spaces.",
         "Designed a modular codebase across 4 core libraries with standardized interfaces, cutting dataset/algorithm onboarding time ~80% and enabling rapid experimentation across 10+ configurations.",
         "Developing a novel autoencoder-based projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
       ],
-      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07"}] },
-
-    { name:"Neurology Cell Analysis Pipelines", org:"Eleanna Kara Neurodegenerative Disease Lab", year:"2025",
-      status:"ACTIVE",
-      desc:"Lead programmer: Python microscopy pipelines quantifying neuronal morphology for neurodegenerative-disease research.",
-      tags:["Python","OpenCV","scikit-image","Segmentation"],
-      detail:[
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07",
+        },
+      ],
+    },
+    {
+      name: "Neurology Cell Analysis Pipelines",
+      org: "Eleanna Kara Neurodegenerative Disease Lab",
+      year: "2025",
+      status: "ACTIVE",
+      desc: "Lead programmer: Python microscopy pipelines quantifying neuronal morphology for neurodegenerative-disease research.",
+      tags: ["Python", "OpenCV", "scikit-image", "Segmentation"],
+      detail: [
         "Developed Python-based data-processing pipelines to analyze 800+ microscopy images, removing analysis bias by >50%.",
         "Designed and optimized segmentation, thresholding, and contour-detection algorithms to extract 15–20 quantitative cell features (soma area, circularity, neurite length), increasing analysis throughput by 5x.",
         "Automated QC, visualization, and summary-statistics generation across 8+ experimental batches, improving reproducibility of downstream neurobiological analyses.",
         "Modularized the codebase with reusable functions, improving maintainability and reducing rerun errors across experiments.",
       ],
-      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07"}] },
-
-    { name:"Break Through Tech AI Fellowship", org:"Cornell Tech", year:"2026",
-      status:"ACTIVE",
-      desc:"Machine Learning & AI Fellow — a competitive year-long AI/ML fellowship, including a technical 12-week AI program from Cornell Tech.",
-      tags:["Python","Machine Learning","Model Validation"],
-      detail:[
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07",
+        },
+      ],
+    },
+    {
+      name: "Break Through Tech AI Fellowship",
+      org: "Cornell Tech",
+      year: "2026",
+      status: "ACTIVE",
+      desc: "Machine Learning & AI Fellow — a competitive year-long AI/ML fellowship, including a technical 12-week AI program from Cornell Tech.",
+      tags: ["Python", "Machine Learning", "Model Validation"],
+      detail: [
         "Selected for a competitive year-long AI/ML fellowship; completed a technical 12-week AI Program from Cornell Tech, building and validating ML models on real-world datasets in Python.",
         "Completing a technical, industry-relevant project plus virtual professional-development and technical workshops on authentic leadership, effective collaboration, project management, and professional norms.",
       ],
-      links:[{label:"BREAK THROUGH TECH",url:"https://www.breakthroughtech.org/"}] },
+      links: [
+        {
+          label: "BREAK THROUGH TECH",
+          url: "https://www.breakthroughtech.org/",
+        },
+      ],
+    },
   ],
-
-  // Contact: bottom panel + overlay
   contact: {
     lead: "Signals open: feel free to contact me!",
     body: [
       "Open to any quant-dev / SWE roles as well as for ML/AI research collaborations.",
     ],
     channels: [
-      { k:"EMAIL", v:"timmyhsu07@gmail.com", url:"mailto:timmyhsu07@gmail.com" },
-      { k:"GITHUB", v:"github.com/timmyhsu07", url:"https://github.com/timmyhsu07" },
-      { k:"LINKEDIN", v:"linkedin.com/in/timhsu7", url:"https://www.linkedin.com/in/timhsu7/" },
-      { k:"RESUME", v:"Timothy_Hsu_Resume_2026.pdf", url:"Timothy_Hsu_Resume_2026.pdf?v=3" },
+      {
+        k: "EMAIL",
+        v: "timmyhsu07@gmail.com",
+        url: "mailto:timmyhsu07@gmail.com",
+      },
+      {
+        k: "GITHUB",
+        v: "github.com/timmyhsu07",
+        url: "https://github.com/timmyhsu07",
+      },
+      {
+        k: "LINKEDIN",
+        v: "linkedin.com/in/timhsu7",
+        url: "https://www.linkedin.com/in/timhsu7/",
+      },
+      {
+        k: "RESUME",
+        v: "Timothy_Hsu_Resume_2026.pdf",
+        url: "Timothy_Hsu_Resume_2026.pdf?v=3",
+      },
     ],
   },
-
-  // Project categories. Each project's `belt` must match one of these ids.
   belts: [
-    { id:"ml", label:"MACHINE LEARNING", color:"#54ff8a", r:1.55 },
-    { id:"quant", label:"QUANT FINANCE", color:"#ff6a1f", r:1.95 },
-    { id:"systems", label:"SYSTEMS / INFRA", color:"#39d6c8", r:2.30 },
-    { id:"web", label:"WEB / TOOLS", color:"#5f7bff", r:2.62 },
-    { id:"research",label:"RESEARCH", color:"#ff3b2f", r:1.75 },
+    {
+      id: "ml",
+      label: "MACHINE LEARNING",
+      color: "#54ff8a",
+      r: 1.55,
+    },
+    {
+      id: "quant",
+      label: "QUANT FINANCE",
+      color: "#ff6a1f",
+      r: 1.95,
+    },
+    {
+      id: "systems",
+      label: "SYSTEMS / INFRA",
+      color: "#39d6c8",
+      r: 2.3,
+    },
+    {
+      id: "web",
+      label: "WEB / TOOLS",
+      color: "#5f7bff",
+      r: 2.62,
+    },
+    {
+      id: "research",
+      label: "RESEARCH",
+      color: "#ff3b2f",
+      r: 1.75,
+    },
   ],
-
-  // Projects. status is ACTIVE | DEPLOYED | ARCHIVED.
   projects: [
-    { name:"GLIMPSE", belt:"ml", status:"ACTIVE",
-      desc:"Geometric Lens for Inspecting Multiplicity of Sets and Explanations — an ML-interpretability pipeline for on-manifold counterfactual recourse under parameter uncertainty.",
-      detail:[
+    {
+      name: "GLIMPSE",
+      belt: "ml",
+      status: "ACTIVE",
+      desc: "Geometric Lens for Inspecting Multiplicity of Sets and Explanations — an ML-interpretability pipeline for on-manifold counterfactual recourse under parameter uncertainty.",
+      detail: [
         "Built an ML-interpretability pipeline in Python over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms to reduce projection selection to a single automated run.",
         "Engineered 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness), quantifying projection distortion across high-dimensional feature spaces.",
         "Designed a modular codebase across 4 core libraries with standardized interfaces, cutting dataset/algorithm onboarding time ~80%.",
         "Developing a novel autoencoder projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
       ],
-      tech:["Python","PyTorch","Autoencoders","UMAP / PaCMAP","scikit-learn","NumPy"],
-      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07"}] },
-    { name:"GAMMA-SCALP", belt:"quant", status:"DEPLOYED",
-      desc:"Research-grade options backtester for gamma-scalping — implements and stress-tests a published exit-timing framework.",
-      detail:[
+      tech: [
+        "Python",
+        "PyTorch",
+        "Autoencoders",
+        "UMAP / PaCMAP",
+        "scikit-learn",
+        "NumPy",
+      ],
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07",
+        },
+      ],
+    },
+    {
+      name: "GAMMA-SCALP",
+      belt: "quant",
+      status: "DEPLOYED",
+      desc: "Research-grade options backtester for gamma-scalping — implements and stress-tests a published exit-timing framework.",
+      detail: [
         "Built a research-grade options backtester (Python, NumPy, SciPy, pandas) implementing a published exit-timing framework (Ramkumar, 2025); validated Black–Scholes/Greeks against QuantLib to 1e-8 across 3,000+ Monte Carlo paths.",
         "Identified a drift-term inconsistency in the paper's hedged-P&L derivation via invariance testing, quantifying a non-tradable foresight ceiling (+55% mean P&L vs. hold-to-expiry, +66% net of costs).",
         "Designed a look-ahead-proof architecture — immutable per-day state, a write-once data cache, and a 172-test suite — showing a causal vol-forecast exit rule captures 72% of that ceiling's edge (90% CI 66–77%) net of costs.",
       ],
-      tech:["Python","NumPy","SciPy","pandas","QuantLib","pytest"],
-      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/gamma-exit.git"}] },
-    { name:"QUANT CHALLENGE '25", belt:"quant", status:"TOP 2%",
-      desc:"Top-2% finalist — an ML prediction pipeline plus Courtsense, a live basketball trading algorithm.",
-      detail:[
+      tech: ["Python", "NumPy", "SciPy", "pandas", "QuantLib", "pytest"],
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07/gamma-exit.git",
+        },
+      ],
+    },
+    {
+      name: "QUANT CHALLENGE '25",
+      belt: "quant",
+      status: "TOP 2%",
+      desc: "Top-2% finalist — an ML prediction pipeline plus Courtsense, a live basketball trading algorithm.",
+      detail: [
         "Engineered an end-to-end ML pipeline using Random Forests (200 trees, max depth 30) over 10,000+ observations across 14 engineered features, improving predictive accuracy >25% over baseline.",
         "Applied feature selection, correlation analysis, ensemble modeling, and probability calibration to improve model generalization and robustness.",
         "Built Courtsense, a live basketball trading algorithm processing 1,000+ in-game events per match, sizing bets via the Kelly Criterion for a simulated 18% ROI validated through backtesting and stress testing.",
       ],
-      tech:["Python","scikit-learn","Random Forests","NumPy","pandas","Kelly Criterion"],
-      links:[{label:"GITHUB",url:"https://github.com/timmyhsu07/QuantChallenge25-Test-Repo.git"}] },
+      tech: [
+        "Python",
+        "scikit-learn",
+        "Random Forests",
+        "NumPy",
+        "pandas",
+        "Kelly Criterion",
+      ],
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07/QuantChallenge25-Test-Repo.git",
+        },
+      ],
+    },
   ],
-
-  // Fleet. `type` picks the procedural wireframe; `naif` is the NAIF id used to match
-  // the live DSN feed. `model` (optional) is a GLB in /models that swaps in once loaded.
   fleet: [
-    // active
-    { code:"VGR-1", name:"VOYAGER 1", status:"ACTIVE", region:"HELIOSHEATH / INTERSTELLAR", range:"~167 AU", vrel:"~17 KM/S", signal:"DSN · X-BAND", launch:"1977-09-05", type:"voyager", naif:-31, model:"models/voyager.glb" },
-    { code:"VGR-2", name:"VOYAGER 2", status:"ACTIVE", region:"INTERSTELLAR SPACE", range:"~139 AU", vrel:"~15 KM/S", signal:"DSN · S/X-BAND",launch:"1977-08-20", type:"voyager", naif:-32, model:"models/voyager.glb" },
-    { code:"NH", name:"NEW HORIZONS", status:"ACTIVE", region:"OUTER SOLAR SYSTEM", range:"~63 AU", vrel:"~14 KM/S", signal:"DSN · X-BAND", launch:"2006-01-19", type:"newhorizons", naif:-98, model:"models/newhorizons.glb" },
-    { code:"PSP", name:"PARKER SOLAR PROBE", status:"ACTIVE", region:"INNER HELIOSPHERE", range:"~0.4 AU", vrel:"~110 KM/S",signal:"DSN · Ka-BAND", launch:"2018-08-12", type:"parker", naif:-96, model:"models/parker.glb" },
-    { code:"JUNO", name:"JUNO", status:"ACTIVE", region:"JOVIAN SYSTEM", range:"~5.2 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND", launch:"2011-08-05", type:"juno", naif:-61, model:"models/juno.glb" },
-    { code:"MRO", name:"MARS RECON ORBITER", status:"ACTIVE", region:"MARS ORBIT", range:"~1.6 AU", vrel:"~3 KM/S", signal:"DSN · X-BAND", launch:"2005-08-12", type:"orbiter", naif:-74, model:"models/mro.glb" },
-    { code:"ODY", name:"MARS ODYSSEY", status:"ACTIVE", region:"MARS ORBIT", range:"~1.6 AU", vrel:"~3 KM/S", signal:"DSN · X-BAND", launch:"2001-04-07", type:"orbiter", naif:-53, model:"models/odyssey.glb" },
-    { code:"STA", name:"STEREO-A", status:"ACTIVE", region:"HELIOCENTRIC · 1 AU", range:"~1.0 AU", vrel:"~30 KM/S", signal:"DSN · X-BAND", launch:"2006-10-26", type:"orbiter", naif:-234, model:"models/stereo.glb" },
-    // ended
-    { code:"CAS", name:"CASSINI", status:"ENDED", region:"SATURN SYSTEM", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1997-10-15", type:"cassini", naif:-82, model:"models/cassini.glb" },
-    { code:"GLL", name:"GALILEO", status:"ENDED", region:"JOVIAN SYSTEM", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"1989-10-18", type:"galileo", naif:-77, model:"models/galileo.glb" },
-    { code:"DAWN", name:"DAWN", status:"ENDED", region:"CERES ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2007-09-27", type:"orbiter", naif:-203, model:"models/dawn.glb" },
-    { code:"MSGR", name:"MESSENGER", status:"ENDED", region:"MERCURY ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-08-03", type:"orbiter", naif:-236, model:"models/messenger.glb" },
-    { code:"ROS", name:"ROSETTA", status:"ENDED", region:"COMET 67P", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2004-03-02", type:"orbiter", naif:-226, model:"models/rosetta.glb" },
-    { code:"KEP", name:"KEPLER", status:"ENDED", region:"EARTH-TRAILING ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2009-03-07", type:"orbiter", naif:-227, model:"models/kepler.glb" },
-    { code:"SPZ", name:"SPITZER", status:"ENDED", region:"EARTH-TRAILING ORBIT", range:"—", vrel:"—", signal:"DECOMMISSIONED", launch:"2003-08-25", type:"orbiter", naif:-79, model:"models/spitzer.glb" },
+    {
+      code: "VGR-1",
+      name: "VOYAGER 1",
+      status: "ACTIVE",
+      region: "HELIOSHEATH / INTERSTELLAR",
+      range: "~167 AU",
+      vrel: "~17 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "1977-09-05",
+      type: "voyager",
+      naif: -31,
+      model: "models/voyager.glb",
+    },
+    {
+      code: "VGR-2",
+      name: "VOYAGER 2",
+      status: "ACTIVE",
+      region: "INTERSTELLAR SPACE",
+      range: "~139 AU",
+      vrel: "~15 KM/S",
+      signal: "DSN · S/X-BAND",
+      launch: "1977-08-20",
+      type: "voyager",
+      naif: -32,
+      model: "models/voyager.glb",
+    },
+    {
+      code: "NH",
+      name: "NEW HORIZONS",
+      status: "ACTIVE",
+      region: "OUTER SOLAR SYSTEM",
+      range: "~63 AU",
+      vrel: "~14 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "2006-01-19",
+      type: "newhorizons",
+      naif: -98,
+      model: "models/newhorizons.glb",
+    },
+    {
+      code: "PSP",
+      name: "PARKER SOLAR PROBE",
+      status: "ACTIVE",
+      region: "INNER HELIOSPHERE",
+      range: "~0.4 AU",
+      vrel: "~110 KM/S",
+      signal: "DSN · Ka-BAND",
+      launch: "2018-08-12",
+      type: "parker",
+      naif: -96,
+      model: "models/parker.glb",
+    },
+    {
+      code: "JUNO",
+      name: "JUNO",
+      status: "ACTIVE",
+      region: "JOVIAN SYSTEM",
+      range: "~5.2 AU",
+      vrel: "~30 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "2011-08-05",
+      type: "juno",
+      naif: -61,
+      model: "models/juno.glb",
+    },
+    {
+      code: "MRO",
+      name: "MARS RECON ORBITER",
+      status: "ACTIVE",
+      region: "MARS ORBIT",
+      range: "~1.6 AU",
+      vrel: "~3 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "2005-08-12",
+      type: "orbiter",
+      naif: -74,
+      model: "models/mro.glb",
+    },
+    {
+      code: "ODY",
+      name: "MARS ODYSSEY",
+      status: "ACTIVE",
+      region: "MARS ORBIT",
+      range: "~1.6 AU",
+      vrel: "~3 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "2001-04-07",
+      type: "orbiter",
+      naif: -53,
+      model: "models/odyssey.glb",
+    },
+    {
+      code: "STA",
+      name: "STEREO-A",
+      status: "ACTIVE",
+      region: "HELIOCENTRIC · 1 AU",
+      range: "~1.0 AU",
+      vrel: "~30 KM/S",
+      signal: "DSN · X-BAND",
+      launch: "2006-10-26",
+      type: "orbiter",
+      naif: -234,
+      model: "models/stereo.glb",
+    },
+    {
+      code: "CAS",
+      name: "CASSINI",
+      status: "ENDED",
+      region: "SATURN SYSTEM",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "1997-10-15",
+      type: "cassini",
+      naif: -82,
+      model: "models/cassini.glb",
+    },
+    {
+      code: "GLL",
+      name: "GALILEO",
+      status: "ENDED",
+      region: "JOVIAN SYSTEM",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "1989-10-18",
+      type: "galileo",
+      naif: -77,
+      model: "models/galileo.glb",
+    },
+    {
+      code: "DAWN",
+      name: "DAWN",
+      status: "ENDED",
+      region: "CERES ORBIT",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "2007-09-27",
+      type: "orbiter",
+      naif: -203,
+      model: "models/dawn.glb",
+    },
+    {
+      code: "MSGR",
+      name: "MESSENGER",
+      status: "ENDED",
+      region: "MERCURY ORBIT",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "2004-08-03",
+      type: "orbiter",
+      naif: -236,
+      model: "models/messenger.glb",
+    },
+    {
+      code: "ROS",
+      name: "ROSETTA",
+      status: "ENDED",
+      region: "COMET 67P",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "2004-03-02",
+      type: "orbiter",
+      naif: -226,
+      model: "models/rosetta.glb",
+    },
+    {
+      code: "KEP",
+      name: "KEPLER",
+      status: "ENDED",
+      region: "EARTH-TRAILING ORBIT",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "2009-03-07",
+      type: "orbiter",
+      naif: -227,
+      model: "models/kepler.glb",
+    },
+    {
+      code: "SPZ",
+      name: "SPITZER",
+      status: "ENDED",
+      region: "EARTH-TRAILING ORBIT",
+      range: "—",
+      vrel: "—",
+      signal: "DECOMMISSIONED",
+      launch: "2003-08-25",
+      type: "orbiter",
+      naif: -79,
+      model: "models/spitzer.glb",
+    },
   ],
 };
