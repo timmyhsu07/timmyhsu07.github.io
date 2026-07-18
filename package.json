@@ -8,6 +8,11 @@
     "dev": "npx --yes serve -l 3000 .",
     "serve": "python3 -m http.server 8000"
   },
-  "keywords": ["portfolio", "threejs", "webgl", "static-site"],
+  "keywords": [
+    "portfolio",
+    "threejs",
+    "webgl",
+    "static-site"
+  ],
   "license": "MIT"
 }
