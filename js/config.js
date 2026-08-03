@@ -26,7 +26,7 @@ const CONFIG = {
     },
     {
       label: "RESUME",
-      url: "Timothy_Hsu_Resume_2026.pdf?v=3",
+      url: "Timothy_Hsu_Resume_2026.pdf?v=4",
     },
   ],
   about: {
@@ -81,26 +81,31 @@ const CONFIG = {
     {
       name: "Counterfactual Recourse under Uncertainty",
       org: "TRACE AI Lab · Rutgers",
-      year: "2026",
-      status: "ACTIVE",
-      desc: "GLIMPSE — geometric ML interpretability: on-manifold counterfactual recourse via autoencoders under parameter uncertainty.",
+      year: "MAY 2026 – AUG 2026",
+      status: "COMPLETE",
+      desc: "GLIMPSE — geometric ML interpretability: mapping the full Rashomon set of equally-accurate models to expose counterfactual recourse under model multiplicity.",
       tags: [
         "Python",
-        "PyTorch",
-        "Autoencoders",
-        "UMAP / PaCMAP",
+        "NumPy",
+        "SciPy",
         "scikit-learn",
+        "Vercel",
       ],
       detail: [
         "Built an ML-interpretability pipeline in Python (GLIMPSE: Geometric Lens for Inspecting Multiplicity of Sets and Explanations) over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms and reducing projection selection to a single automated run.",
         "Engineered 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness), quantifying projection distortion and enabling automated evaluation across high-dimensional feature spaces.",
         "Designed a modular codebase across 4 core libraries with standardized interfaces, cutting dataset/algorithm onboarding time ~80% and enabling rapid experimentation across 10+ configurations.",
-        "Developing a novel autoencoder-based projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
+        "Designed ECLIPSE, a projection with an exact zero-error inverse that blends data covariance, model direction, Rashomon disagreement, and missingness into one lens — reaching 0.99+ decision fidelity (vs. 0.88 for PCA) and surfacing 39% of model disagreement vs. 0.7% for PCA across 7 datasets.",
+        "Deployed the tool as a live web app on Vercel with serverless endpoints and precomputed model fits.",
       ],
       links: [
         {
+          label: "LIVE APP",
+          url: "https://glimpse-tool.vercel.app",
+        },
+        {
           label: "GITHUB",
-          url: "https://github.com/timmyhsu07",
+          url: "https://github.com/timmyhsu07/glimpse_tool",
         },
       ],
     },
@@ -167,7 +172,7 @@ const CONFIG = {
       {
         k: "RESUME",
         v: "Timothy_Hsu_Resume_2026.pdf",
-        url: "Timothy_Hsu_Resume_2026.pdf?v=3",
+        url: "Timothy_Hsu_Resume_2026.pdf?v=4",
       },
     ],
   },
@@ -207,26 +212,31 @@ const CONFIG = {
     {
       name: "GLIMPSE",
       belt: "ml",
-      status: "ACTIVE",
-      desc: "Geometric Lens for Inspecting Multiplicity of Sets and Explanations — an ML-interpretability pipeline for on-manifold counterfactual recourse under parameter uncertainty.",
+      status: "COMPLETE",
+      desc: "Geometric Lens for Inspecting Multiplicity of Sets and Explanations — an interactive map of every equally-accurate model for a dataset, exposing which individuals are genuine close calls. Live on Vercel.",
       detail: [
-        "Built an ML-interpretability pipeline in Python over 5,000+ records, benchmarking 4 dimensionality-reduction algorithms to reduce projection selection to a single automated run.",
-        "Engineered 3 geometric fidelity metrics (Pearson/Spearman distance correlation, trustworthiness), quantifying projection distortion across high-dimensional feature spaces.",
-        "Designed a modular codebase across 4 core libraries with standardized interfaces, cutting dataset/algorithm onboarding time ~80%.",
-        "Developing a novel autoencoder projection with custom multi-term loss functions that preserve counterfactual distances and uncertainty geometry under parameter uncertainty.",
+        "Built an interactive tool for model multiplicity: for most datasets many models fit the data equally well but disagree about individual people, so GLIMPSE renders the whole Rashomon set — every model inside an ε-loss ball around the optimum — on a single 2D map instead of trusting one arbitrarily-chosen fit.",
+        "Designed ECLIPSE, the projection behind it: a linear lens whose plane is the top-2 eigenbasis of a weighted blend of four unit-trace interest matrices — data covariance, the fitted model direction, a disagreement-gradient term derived from the Rashomon ellipsoid, and a missingness-variance term — yielding a map tilted toward the decision rather than toward raw variance, with an exact zero-error inverse.",
+        "Reached 0.99+ decision fidelity against PCA's 0.88 and surfaced 39% of pairwise model disagreement vs. PCA's 0.7% across 7 datasets, benchmarking 4 dimensionality-reduction methods over 5,000+ records under trustworthiness and Spearman distance-correlation metrics.",
+        "Ran counterfactual recourse search under per-dataset immutable-feature constraints (age, prior pregnancies, and credit-file age stay fixed), returning the smallest admissible change that flips a prediction — and showing how far that change moves across equally-accurate models.",
+        "Shipped live on Vercel as a serverless Python app: the API endpoints serve scenes from model fits precomputed offline and cached to disk to keep cold starts cheap, with the engine split into 4 modular libraries (data, lenses/projection, counterfactuals, service) behind shared interfaces — cutting onboarding for a new dataset or model backend ~80%.",
       ],
       tech: [
         "Python",
-        "PyTorch",
-        "Autoencoders",
-        "UMAP / PaCMAP",
-        "scikit-learn",
         "NumPy",
+        "SciPy",
+        "scikit-learn",
+        "Vercel",
+        "JavaScript",
       ],
       links: [
         {
+          label: "LIVE APP",
+          url: "https://glimpse-tool.vercel.app",
+        },
+        {
           label: "GITHUB",
-          url: "https://github.com/timmyhsu07",
+          url: "https://github.com/timmyhsu07/glimpse_tool",
         },
       ],
     },
@@ -245,6 +255,32 @@ const CONFIG = {
         {
           label: "GITHUB",
           url: "https://github.com/timmyhsu07/gamma-exit.git",
+        },
+      ],
+    },
+    {
+      name: "MAGI",
+      belt: "ml",
+      status: "SHIPPED",
+      desc: "Microbial Analysis for Genomic Inhibitors — evidence-linked antimicrobial-resistance prediction from assembled bacterial genomes, with calibrated probabilities and explicit abstention.",
+      detail: [
+        "Built a 3-stage pipeline (ingest → features → inference) that runs AMRFinderPlus over assembled bacterial genomes, reduces the hit table to a sparse gene-presence feature matrix, and persists it as Parquet so downstream runs are deterministic and cheap to replay across 3 antibiotic targets.",
+        "Trained per-drug resistance classifiers under grouped cross-validation keyed on sample relatedness, so clonally related isolates never straddle a train/test split — removing the leakage that inflates naive AMR benchmark scores.",
+        "Calibrated raw model scores into usable probabilities and gated every prediction behind an out-of-distribution check on the feature support, so isolates outside the training manifold abstain instead of emitting a confident wrong call.",
+        "Shipped a Streamlit decision app with swappable demo and live backends plus gene-level evidence traces that link each call back to the resistance determinants driving it; validated by a 109-test suite covering calibration, OOD gating, and abstention paths.",
+      ],
+      tech: [
+        "Python",
+        "scikit-learn",
+        "Streamlit",
+        "Parquet",
+        "pandas",
+        "AMRFinderPlus",
+      ],
+      links: [
+        {
+          label: "GITHUB",
+          url: "https://github.com/timmyhsu07/MAGI-Microbial-Analysis-for-Genomic-Inhibitors",
         },
       ],
     },
